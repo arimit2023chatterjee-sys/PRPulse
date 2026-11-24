@@ -25,6 +25,19 @@ PR_URL_REGEX = re.compile(
 )
 
 
+@router.get(
+    "/webhooks/github",
+    summary="GitHub Webhook Status",
+    description="Reports that the GitHub webhook listener endpoint is active and listening for POST requests.",
+)
+async def github_webhook_status():
+    return {
+        "status": "listening",
+        "message": "PRPulse GitHub Webhook endpoint is active. Configure this URL in GitHub Webhook Settings with HTTP method POST and event 'pull_request'.",
+        "documentation": "/docs#/default/handle_github_webhook_webhooks_github_post"
+    }
+
+
 @router.post(
     "/webhooks/github",
     response_model=WebhookEventResponse,

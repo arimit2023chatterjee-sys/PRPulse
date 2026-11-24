@@ -1,0 +1,1107 @@
+<!DOCTYPE html>
+<html lang="en" class="dark">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PRPulse — AI Pull Request Reviewer & Code Quality Platform</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  <!-- Tailwind CSS CDN -->
+  <script src="https://cdn.tailwindcss.com"></script>
+  <!-- Lucide Icons -->
+  <script src="https://unpkg.com/lucide@latest"></script>
+  <script>
+    tailwind.config = {
+      darkMode: 'class',
+      theme: {
+        extend: {
+          fontFamily: {
+            sans: ['Inter', 'sans-serif'],
+            mono: ['JetBrains Mono', 'monospace'],
+          },
+          colors: {
+            brand: {
+              50: '#eef2ff',
+              100: '#e0e7ff',
+              500: '#6366f1',
+              600: '#4f46e5',
+              700: '#4338ca',
+            },
+            surface: {
+              900: '#0b0f19',
+              800: '#111827',
+              750: '#161f33',
+              700: '#1f2937',
+              600: '#374151',
+            }
+          }
+        }
+      }
+    }
+  </script>
+  <style>
+    /* Custom scrollbars */
+    ::-webkit-scrollbar { width: 6px; height: 6px; }
+    ::-webkit-scrollbar-track { background: #0b0f19; }
+    ::-webkit-scrollbar-thumb { background: #2d3748; border-radius: 3px; }
+    ::-webkit-scrollbar-thumb:hover { background: #4a5568; }
+    .pulse-glow { box-shadow: 0 0 25px -5px rgba(99, 102, 241, 0.4); }
+  </style>
+</head>
+<body class="bg-surface-900 text-slate-100 font-sans min-h-screen flex flex-col antialiased selection:bg-brand-500 selection:text-white">
+
+  <!-- Top Navigation Bar -->
+  <header class="border-b border-surface-700/60 bg-surface-800/80 backdrop-blur sticky top-0 z-40">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+      
+      <!-- Logo & Brand -->
+      <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('dashboard')">
+        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-violet-500 flex items-center justify-center text-white shadow-lg shadow-brand-500/20">
+          <i data-lucide="git-pull-request" class="w-5 h-5"></i>
+        </div>
+        <div>
+          <div class="flex items-center space-x-2">
+            <span class="font-extrabold text-xl tracking-tight bg-gradient-to-r from-white via-slate-200 to-brand-100 bg-clip-text text-transparent">PRPulse</span>
+            <span class="text-[10px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded bg-brand-500/10 text-brand-400 border border-brand-500/20">v1.0</span>
+          </div>
+          <p class="text-xs text-slate-400 hidden sm:block">AI & Static Code Quality Engine</p>
+        </div>
+      </div>
+
+      <!-- Navigation Tabs -->
+      <nav class="hidden md:flex items-center space-x-1">
+        <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn px-3 py-2 text-sm font-medium rounded-lg text-white bg-surface-700 flex items-center space-x-2 transition">
+          <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+          <span>Dashboard</span>
+        </button>
+        <button onclick="switchTab('studio')" id="nav-studio" class="nav-btn px-3 py-2 text-sm font-medium rounded-lg text-slate-300 hover:text-white hover:bg-surface-700/50 flex items-center space-x-2 transition">
+          <i data-lucide="terminal" class="w-4 h-4"></i>
+          <span>Review Studio</span>
+        </button>
+        <button onclick="switchTab('history')" id="nav-history" class="nav-btn px-3 py-2 text-sm font-medium rounded-lg text-slate-300 hover:text-white hover:bg-surface-700/50 flex items-center space-x-2 transition">
+          <i data-lucide="history" class="w-4 h-4"></i>
+          <span>Audit History</span>
+        </button>
+        <button onclick="switchTab('webhooks')" id="nav-webhooks" class="nav-btn px-3 py-2 text-sm font-medium rounded-lg text-slate-300 hover:text-white hover:bg-surface-700/50 flex items-center space-x-2 transition">
+          <i data-lucide="webhook" class="w-4 h-4"></i>
+          <span>Webhook Setup</span>
+        </button>
+      </nav>
+
+      <!-- Right Controls -->
+      <div class="flex items-center space-x-3">
+        <!-- System Health Pill -->
+        <div id="health-pill" class="flex items-center space-x-2 text-xs px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
+          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
+          <span id="health-text" class="font-medium">Engine Ready</span>
+        </div>
+
+        <!-- Swagger Docs Link -->
+        <a href="/docs" target="_blank" class="hidden sm:flex items-center space-x-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-surface-700/60 hover:bg-surface-700 text-slate-300 hover:text-white border border-surface-600 transition">
+          <i data-lucide="book-open" class="w-3.5 h-3.5"></i>
+          <span>API Docs</span>
+        </a>
+
+        <!-- GitHub Repo Link -->
+        <a href="https://github.com/arimit2023chatterjee-sys/PRPulse" target="_blank" class="p-2 rounded-lg bg-surface-700/40 hover:bg-surface-700 text-slate-300 hover:text-white border border-surface-600 transition" title="View Source on GitHub">
+          <i data-lucide="github" class="w-4 h-4"></i>
+        </a>
+      </div>
+    </div>
+  </header>
+
+  <!-- Mobile Navigation Bar -->
+  <div class="md:hidden border-b border-surface-700 bg-surface-800 px-4 py-2 flex items-center justify-around text-xs">
+    <button onclick="switchTab('dashboard')" class="flex flex-col items-center py-1 text-brand-400">
+      <i data-lucide="layout-dashboard" class="w-4 h-4 mb-0.5"></i>
+      <span>Dashboard</span>
+    </button>
+    <button onclick="switchTab('studio')" class="flex flex-col items-center py-1 text-slate-400">
+      <i data-lucide="terminal" class="w-4 h-4 mb-0.5"></i>
+      <span>Studio</span>
+    </button>
+    <button onclick="switchTab('history')" class="flex flex-col items-center py-1 text-slate-400">
+      <i data-lucide="history" class="w-4 h-4 mb-0.5"></i>
+      <span>History</span>
+    </button>
+    <button onclick="switchTab('webhooks')" class="flex flex-col items-center py-1 text-slate-400">
+      <i data-lucide="webhook" class="w-4 h-4 mb-0.5"></i>
+      <span>Webhook</span>
+    </button>
+  </div>
+
+  <!-- Main Content Container -->
+  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+
+    <!-- ============================================================== -->
+    <!-- TAB 1: DASHBOARD OVERVIEW -->
+    <!-- ============================================================== -->
+    <section id="tab-dashboard" class="space-y-8">
+      
+      <!-- Hero Welcome Banner -->
+      <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-surface-800 via-surface-750 to-brand-900/30 border border-surface-700/70 p-6 sm:p-8">
+        <div class="relative z-10 max-w-2xl">
+          <div class="inline-flex items-center space-x-2 px-2.5 py-1 rounded-full bg-brand-500/10 text-brand-300 text-xs font-semibold mb-4 border border-brand-500/20">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
+            <span>Automated Pull Request Reviewer & Security Gate</span>
+          </div>
+          <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-white mb-2">
+            Accelerate PR merges with automated code intelligence.
+          </h1>
+          <p class="text-slate-300 text-sm sm:text-base leading-relaxed mb-6">
+            PRPulse runs a deterministic static analysis pass alongside an LLM review, surfacing critical bugs, exposed credentials, SQL/command injections, and performance leaks before production.
+          </p>
+          <div class="flex flex-wrap gap-3">
+            <button onclick="switchTab('studio')" class="px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-medium text-sm flex items-center space-x-2 shadow-lg shadow-brand-600/30 transition">
+              <i data-lucide="play" class="w-4 h-4 fill-current"></i>
+              <span>Open Review Studio</span>
+            </button>
+            <button onclick="switchTab('webhooks')" class="px-4 py-2.5 rounded-xl bg-surface-700 hover:bg-surface-600 text-slate-200 font-medium text-sm flex items-center space-x-2 border border-surface-600 transition">
+              <i data-lucide="settings" class="w-4 h-4"></i>
+              <span>Connect GitHub Webhook</span>
+            </button>
+          </div>
+        </div>
+        <div class="absolute -right-10 -bottom-10 w-80 h-80 bg-brand-500/10 rounded-full blur-3xl pointer-events-none"></div>
+      </div>
+
+      <!-- Live KPI Metrics Cards -->
+      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+        <!-- Card 1 -->
+        <div class="bg-surface-800 border border-surface-700/60 rounded-xl p-5 shadow-sm">
+          <div class="flex items-center justify-between text-slate-400 mb-3">
+            <span class="text-xs font-semibold uppercase tracking-wider">Total PR Reviews</span>
+            <div class="p-2 rounded-lg bg-surface-700/50 text-brand-400">
+              <i data-lucide="git-commit" class="w-4 h-4"></i>
+            </div>
+          </div>
+          <div class="text-2xl sm:text-3xl font-extrabold text-white" id="stat-total-reviews">--</div>
+          <p class="text-xs text-slate-400 mt-1 flex items-center">
+            <span class="text-emerald-400 font-medium mr-1.5">● Active</span> Persisted in SQLite
+          </p>
+        </div>
+
+        <!-- Card 2 -->
+        <div class="bg-surface-800 border border-surface-700/60 rounded-xl p-5 shadow-sm">
+          <div class="flex items-center justify-between text-slate-400 mb-3">
+            <span class="text-xs font-semibold uppercase tracking-wider">Defects Discovered</span>
+            <div class="p-2 rounded-lg bg-surface-700/50 text-amber-400">
+              <i data-lucide="alert-triangle" class="w-4 h-4"></i>
+            </div>
+          </div>
+          <div class="text-2xl sm:text-3xl font-extrabold text-white" id="stat-total-findings">--</div>
+          <p class="text-xs text-slate-400 mt-1">Across bugs, security & performance</p>
+        </div>
+
+        <!-- Card 3 -->
+        <div class="bg-surface-800 border border-surface-700/60 rounded-xl p-5 shadow-sm">
+          <div class="flex items-center justify-between text-slate-400 mb-3">
+            <span class="text-xs font-semibold uppercase tracking-wider">Security Blockers</span>
+            <div class="p-2 rounded-lg bg-surface-700/50 text-rose-400">
+              <i data-lucide="shield-alert" class="w-4 h-4"></i>
+            </div>
+          </div>
+          <div class="text-2xl sm:text-3xl font-extrabold text-white" id="stat-critical-findings">--</div>
+          <p class="text-xs text-slate-400 mt-1">Secrets & RCE vectors blocked</p>
+        </div>
+
+        <!-- Card 4 -->
+        <div class="bg-surface-800 border border-surface-700/60 rounded-xl p-5 shadow-sm">
+          <div class="flex items-center justify-between text-slate-400 mb-3">
+            <span class="text-xs font-semibold uppercase tracking-wider">Avg Latency</span>
+            <div class="p-2 rounded-lg bg-surface-700/50 text-cyan-400">
+              <i data-lucide="zap" class="w-4 h-4"></i>
+            </div>
+          </div>
+          <div class="text-2xl sm:text-3xl font-extrabold text-white" id="stat-avg-latency">--</div>
+          <p class="text-xs text-slate-400 mt-1">Static check + LLM pass</p>
+        </div>
+      </div>
+
+      <!-- Recent Reviews Feed & Quick Action Grid -->
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Recent Reviews Feed (2 cols) -->
+        <div class="lg:col-span-2 bg-surface-800 border border-surface-700/60 rounded-xl p-6 shadow-sm">
+          <div class="flex items-center justify-between mb-5">
+            <div>
+              <h2 class="text-base font-bold text-white">Recent Review Runs</h2>
+              <p class="text-xs text-slate-400">Latest pull requests inspected by the pipeline</p>
+            </div>
+            <button onclick="switchTab('history')" class="text-xs font-medium text-brand-400 hover:text-brand-300 flex items-center space-x-1">
+              <span>View All</span>
+              <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
+            </button>
+          </div>
+
+          <div id="recent-reviews-list" class="divide-y divide-surface-700/60">
+            <!-- Loading state -->
+            <div class="py-8 text-center text-slate-500 text-sm">
+              <i data-lucide="loader" class="w-5 h-5 mx-auto mb-2 animate-spin text-brand-400"></i>
+              Loading review history...
+            </div>
+          </div>
+        </div>
+
+        <!-- System Architecture & Pipeline Info (1 col) -->
+        <div class="bg-surface-800 border border-surface-700/60 rounded-xl p-6 shadow-sm space-y-5">
+          <h2 class="text-base font-bold text-white flex items-center space-x-2">
+            <i data-lucide="cpu" class="w-4 h-4 text-brand-400"></i>
+            <span>Inspection Engine</span>
+          </h2>
+
+          <div class="space-y-4 text-xs">
+            <!-- Step 1 -->
+            <div class="flex items-start space-x-3 p-3 rounded-lg bg-surface-750/70 border border-surface-700/40">
+              <div class="w-6 h-6 rounded-md bg-brand-500/10 text-brand-400 flex items-center justify-center font-bold text-xs shrink-0">1</div>
+              <div>
+                <p class="font-semibold text-slate-200">Diff Parser & Filtering</p>
+                <p class="text-slate-400 mt-0.5">Filters lockfiles, images, binaries; maps target 1-indexed line numbers.</p>
+              </div>
+            </div>
+
+            <!-- Step 2 -->
+            <div class="flex items-start space-x-3 p-3 rounded-lg bg-surface-750/70 border border-surface-700/40">
+              <div class="w-6 h-6 rounded-md bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold text-xs shrink-0">2</div>
+              <div>
+                <p class="font-semibold text-slate-200">Fast Static Analyzer</p>
+                <p class="text-slate-400 mt-0.5">High-confidence secrets regex, Python AST check (eval, shell=True, SQL injection), and Ruff.</p>
+              </div>
+            </div>
+
+            <!-- Step 3 -->
+            <div class="flex items-start space-x-3 p-3 rounded-lg bg-surface-750/70 border border-surface-700/40">
+              <div class="w-6 h-6 rounded-md bg-indigo-500/10 text-indigo-400 flex items-center justify-center font-bold text-xs shrink-0">3</div>
+              <div>
+                <p class="font-semibold text-slate-200">Structured LLM Review Pass</p>
+                <p class="text-slate-400 mt-0.5">Evaluates logical bugs, N+1 queries, concurrency issues with strict Pydantic schemas.</p>
+              </div>
+            </div>
+
+            <!-- Step 4 -->
+            <div class="flex items-start space-x-3 p-3 rounded-lg bg-surface-750/70 border border-surface-700/40">
+              <div class="w-6 h-6 rounded-md bg-violet-500/10 text-violet-400 flex items-center justify-center font-bold text-xs shrink-0">4</div>
+              <div>
+                <p class="font-semibold text-slate-200">GitHub REST & Persistence</p>
+                <p class="text-slate-400 mt-0.5">Posts formatted review verdict back to PR and saves audit trail in SQLite.</p>
+              </div>
+            </div>
+          </div>
+
+          <div class="pt-2 border-t border-surface-700">
+            <div class="flex items-center justify-between text-xs text-slate-400">
+              <span>Active Provider:</span>
+              <span id="active-provider-badge" class="font-mono text-brand-300 font-semibold px-2 py-0.5 rounded bg-surface-700">MOCK</span>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ============================================================== -->
+    <!-- TAB 2: REVIEW STUDIO (Interactive Playground) -->
+    <!-- ============================================================== -->
+    <section id="tab-studio" class="hidden space-y-6">
+      
+      <!-- Studio Header -->
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-surface-700/60">
+        <div>
+          <h1 class="text-xl font-bold text-white">Review Studio</h1>
+          <p class="text-xs sm:text-sm text-slate-400">Test diff inspection in real-time or review live GitHub Pull Requests.</p>
+        </div>
+
+        <!-- Mode Toggle (Diff vs PR) -->
+        <div class="inline-flex p-1 rounded-xl bg-surface-800 border border-surface-700">
+          <button onclick="setStudioMode('diff')" id="btn-mode-diff" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-white bg-brand-600 transition">
+            Direct Diff Input
+          </button>
+          <button onclick="setStudioMode('pr')" id="btn-mode-pr" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition">
+            GitHub PR URL
+          </button>
+        </div>
+      </div>
+
+      <!-- Studio Input Form -->
+      <div class="bg-surface-800 border border-surface-700/60 rounded-xl p-5 shadow-sm space-y-4">
+        
+        <!-- SUB-MODE A: Direct Diff Input -->
+        <div id="studio-mode-diff-box" class="space-y-3">
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <label class="text-xs font-semibold uppercase tracking-wider text-slate-300">Unified Code Diff</label>
+            
+            <!-- Quick Preload Sample Diffs -->
+            <div class="flex flex-wrap items-center gap-1.5">
+              <span class="text-xs text-slate-400 mr-1">Load Preset:</span>
+              <button onclick="loadSampleDiff('security')" class="text-xs px-2.5 py-1 rounded-lg bg-surface-700 hover:bg-surface-600 text-rose-300 border border-rose-500/20 transition">
+                🔥 Security Exploit
+              </button>
+              <button onclick="loadSampleDiff('bug')" class="text-xs px-2.5 py-1 rounded-lg bg-surface-700 hover:bg-surface-600 text-amber-300 border border-amber-500/20 transition">
+                ⚠️ N+1 & Timeout Bug
+              </button>
+              <button onclick="loadSampleDiff('clean')" class="text-xs px-2.5 py-1 rounded-lg bg-surface-700 hover:bg-surface-600 text-emerald-300 border border-emerald-500/20 transition">
+                ✅ Clean Code
+              </button>
+            </div>
+          </div>
+
+          <textarea id="input-diff-text" rows="8" placeholder="Paste standard unified git diff here (diff --git a/... b/...)..." class="w-full bg-surface-900 border border-surface-700 rounded-lg p-3 font-mono text-xs text-slate-200 focus:outline-none focus:border-brand-500 transition leading-relaxed"></textarea>
+        </div>
+
+        <!-- SUB-MODE B: GitHub PR URL -->
+        <div id="studio-mode-pr-box" class="hidden space-y-3">
+          <label class="text-xs font-semibold uppercase tracking-wider text-slate-300">GitHub Pull Request URL</label>
+          <div class="relative">
+            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
+              <i data-lucide="github" class="w-4 h-4"></i>
+            </div>
+            <input type="text" id="input-pr-url" placeholder="https://github.com/owner/repository/pull/42" class="w-full pl-10 pr-4 py-2.5 bg-surface-900 border border-surface-700 rounded-lg text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-brand-500 transition font-mono">
+          </div>
+          <div class="flex items-center space-x-2 text-xs text-slate-400">
+            <input type="checkbox" id="input-post-github" class="rounded bg-surface-900 border-surface-600 text-brand-600 focus:ring-0">
+            <label for="input-post-github">Post review comment directly back to the GitHub PR (Requires GITHUB_TOKEN)</label>
+          </div>
+        </div>
+
+        <!-- Trigger Button & Options -->
+        <div class="flex items-center justify-between pt-2">
+          <span class="text-xs text-slate-400">Fast deterministic AST + LLM Pass</span>
+          <button id="btn-run-analysis" onclick="executeReview()" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-semibold text-sm flex items-center space-x-2 shadow-lg shadow-brand-500/25 transition disabled:opacity-50">
+            <i data-lucide="search-code" class="w-4 h-4"></i>
+            <span id="btn-run-text">Run Deep Inspection</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Studio Inspection Result Container (Hidden until analysis runs) -->
+      <div id="studio-result-container" class="hidden space-y-6">
+        
+        <!-- Executive Summary Banner -->
+        <div id="result-banner" class="rounded-xl border p-6 transition">
+          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+            <div class="flex items-center space-x-3">
+              <span id="result-verdict-badge" class="px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider flex items-center space-x-1.5">
+                <!-- Verdict populated via JS -->
+              </span>
+              <span id="result-time-badge" class="text-xs text-slate-400 font-mono"></span>
+            </div>
+
+            <!-- Copy Markdown Review Button -->
+            <button onclick="copyReviewMarkdown()" class="self-start sm:self-auto text-xs px-3 py-1.5 rounded-lg bg-surface-700 hover:bg-surface-600 text-slate-200 border border-surface-600 flex items-center space-x-1.5 transition">
+              <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+              <span id="copy-btn-text">Copy PR Markdown Comment</span>
+            </button>
+          </div>
+
+          <h3 class="text-base font-bold text-white mb-1">Executive Summary</h3>
+          <p id="result-summary-text" class="text-sm text-slate-300 leading-relaxed"></p>
+
+          <!-- Result Metrics Bar -->
+          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-4 border-t border-surface-700/60 text-xs">
+            <div>
+              <span class="text-slate-400">Files Inspected:</span>
+              <span id="meta-files" class="font-bold text-slate-200 ml-1">0</span>
+            </div>
+            <div>
+              <span class="text-slate-400">Static Checks:</span>
+              <span id="meta-static" class="font-bold text-slate-200 ml-1">0</span>
+            </div>
+            <div>
+              <span class="text-slate-400">LLM Findings:</span>
+              <span id="meta-llm" class="font-bold text-slate-200 ml-1">0</span>
+            </div>
+            <div>
+              <span class="text-slate-400">Token Cost:</span>
+              <span id="meta-tokens" class="font-bold text-slate-200 ml-1">0</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- Findings List Section -->
+        <div class="space-y-4">
+          <div class="flex flex-wrap items-center justify-between gap-3">
+            <h2 class="text-base font-bold text-white flex items-center space-x-2">
+              <i data-lucide="list-checks" class="w-4 h-4 text-brand-400"></i>
+              <span>Categorized Findings</span>
+              <span id="findings-count-badge" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-surface-700 text-slate-300">0</span>
+            </h2>
+
+            <!-- Severity Filter Pills -->
+            <div class="flex flex-wrap items-center gap-1 text-xs" id="findings-filter-bar">
+              <button onclick="filterFindings('all')" class="filter-pill active px-2.5 py-1 rounded-md bg-surface-700 text-white font-medium">All</button>
+              <button onclick="filterFindings('critical')" class="filter-pill px-2.5 py-1 rounded-md hover:bg-surface-700 text-rose-400">Critical</button>
+              <button onclick="filterFindings('security')" class="filter-pill px-2.5 py-1 rounded-md hover:bg-surface-700 text-amber-400">Security</button>
+              <button onclick="filterFindings('bug')" class="filter-pill px-2.5 py-1 rounded-md hover:bg-surface-700 text-cyan-400">Bugs</button>
+              <button onclick="filterFindings('performance')" class="filter-pill px-2.5 py-1 rounded-md hover:bg-surface-700 text-violet-400">Performance</button>
+            </div>
+          </div>
+
+          <!-- Cards List -->
+          <div id="findings-card-list" class="space-y-3">
+            <!-- Dynamically populated findings cards -->
+          </div>
+        </div>
+
+      </div>
+
+    </section>
+
+    <!-- ============================================================== -->
+    <!-- TAB 3: AUDIT HISTORY -->
+    <!-- ============================================================== -->
+    <section id="tab-history" class="hidden space-y-6">
+      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-surface-700/60">
+        <div>
+          <h1 class="text-xl font-bold text-white">Review Audit History</h1>
+          <p class="text-xs sm:text-sm text-slate-400">Persistent log of all pull request reviews and static analyses.</p>
+        </div>
+        <button onclick="loadReviewHistory()" class="self-start sm:self-auto text-xs px-3 py-1.5 rounded-lg bg-surface-700 hover:bg-surface-600 text-slate-200 border border-surface-600 flex items-center space-x-1.5 transition">
+          <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+          <span>Refresh</span>
+        </button>
+      </div>
+
+      <!-- History Table Container -->
+      <div class="bg-surface-800 border border-surface-700/60 rounded-xl overflow-hidden shadow-sm">
+        <div class="overflow-x-auto">
+          <table class="w-full text-left text-sm text-slate-300">
+            <thead class="bg-surface-750 text-xs uppercase font-semibold text-slate-400 tracking-wider border-b border-surface-700">
+              <tr>
+                <th class="px-6 py-3.5">Target / PR</th>
+                <th class="px-6 py-3.5">Verdict</th>
+                <th class="px-6 py-3.5">Defects</th>
+                <th class="px-6 py-3.5">Duration</th>
+                <th class="px-6 py-3.5">Date</th>
+                <th class="px-6 py-3.5 text-right">Action</th>
+              </tr>
+            </thead>
+            <tbody id="history-table-body" class="divide-y divide-surface-700/60">
+              <!-- Populated via JS -->
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </section>
+
+    <!-- ============================================================== -->
+    <!-- TAB 4: WEBHOOK SETUP GUIDE -->
+    <!-- ============================================================== -->
+    <section id="tab-webhooks" class="hidden space-y-6">
+      <div class="pb-2 border-b border-surface-700/60">
+        <h1 class="text-xl font-bold text-white">GitHub Webhook Integration</h1>
+        <p class="text-xs sm:text-sm text-slate-400">Configure your GitHub repositories to automatically trigger PR reviews on every pull request event.</p>
+      </div>
+
+      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+        
+        <!-- Setup Guide Steps (2 cols) -->
+        <div class="lg:col-span-2 bg-surface-800 border border-surface-700/60 rounded-xl p-6 shadow-sm space-y-6">
+          <h2 class="text-base font-bold text-white">Interactive Setup Walkthrough</h2>
+
+          <!-- Step 1: Payload URL -->
+          <div class="space-y-2">
+            <div class="flex items-center space-x-2">
+              <span class="w-5 h-5 rounded-full bg-brand-500 text-white flex items-center justify-center text-xs font-bold">1</span>
+              <h3 class="text-sm font-semibold text-slate-200">Set Payload URL in GitHub</h3>
+            </div>
+            <p class="text-xs text-slate-400 pl-7">Navigate to your repository -> <b>Settings</b> -> <b>Webhooks</b> -> <b>Add webhook</b>.</p>
+            <div class="pl-7">
+              <div class="flex items-center space-x-2 max-w-xl">
+                <input type="text" readonly id="webhook-url-input" class="w-full bg-surface-900 border border-surface-700 rounded-lg px-3 py-2 text-xs font-mono text-brand-300 selection:bg-brand-500">
+                <button onclick="copyToClipboard('webhook-url-input', 'url-copy-text')" class="px-3 py-2 bg-surface-700 hover:bg-surface-600 border border-surface-600 rounded-lg text-xs font-medium text-slate-200 shrink-0 transition flex items-center space-x-1">
+                  <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                  <span id="url-copy-text">Copy</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 2: Content Type -->
+          <div class="space-y-2">
+            <div class="flex items-center space-x-2">
+              <span class="w-5 h-5 rounded-full bg-brand-500 text-white flex items-center justify-center text-xs font-bold">2</span>
+              <h3 class="text-sm font-semibold text-slate-200">Select Content Type</h3>
+            </div>
+            <div class="pl-7">
+              <span class="inline-block px-2.5 py-1 rounded bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs font-mono font-semibold">
+                application/json
+              </span>
+              <p class="text-xs text-slate-400 mt-1">⚠️ Do not leave as form-urlencoded. Our engine expects JSON payloads.</p>
+            </div>
+          </div>
+
+          <!-- Step 3: Webhook Secret -->
+          <div class="space-y-2">
+            <div class="flex items-center space-x-2">
+              <span class="w-5 h-5 rounded-full bg-brand-500 text-white flex items-center justify-center text-xs font-bold">3</span>
+              <h3 class="text-sm font-semibold text-slate-200">Configure Webhook Secret (HMAC SHA-256)</h3>
+            </div>
+            <p class="text-xs text-slate-400 pl-7">GitHub uses this secret to sign the `X-Hub-Signature-256` header to ensure only authentic requests are executed.</p>
+            <div class="pl-7">
+              <div class="flex items-center space-x-2 max-w-xl">
+                <input type="password" readonly id="webhook-secret-input" value="7f8a9b2c3d4e5f60718293a4b5c6d7e8f90123456789abcd" class="w-full bg-surface-900 border border-surface-700 rounded-lg px-3 py-2 text-xs font-mono text-emerald-300">
+                <button onclick="toggleSecretVisibility()" class="p-2 bg-surface-700 hover:bg-surface-600 border border-surface-600 rounded-lg text-slate-300">
+                  <i data-lucide="eye" id="secret-eye-icon" class="w-3.5 h-3.5"></i>
+                </button>
+                <button onclick="copyToClipboard('webhook-secret-input', 'secret-copy-text')" class="px-3 py-2 bg-surface-700 hover:bg-surface-600 border border-surface-600 rounded-lg text-xs font-medium text-slate-200 shrink-0 transition flex items-center space-x-1">
+                  <i data-lucide="copy" class="w-3.5 h-3.5"></i>
+                  <span id="secret-copy-text">Copy</span>
+                </button>
+              </div>
+            </div>
+          </div>
+
+          <!-- Step 4: Event Triggers -->
+          <div class="space-y-2">
+            <div class="flex items-center space-x-2">
+              <span class="w-5 h-5 rounded-full bg-brand-500 text-white flex items-center justify-center text-xs font-bold">4</span>
+              <h3 class="text-sm font-semibold text-slate-200">Choose Event Triggers</h3>
+            </div>
+            <div class="pl-7 text-xs text-slate-300 space-y-1">
+              <p>Select: <b>"Let me select individual events"</b></p>
+              <p>Check: ☑️ <b>Pull requests</b> (Actions: <code>opened</code>, <code>synchronize</code>, <code>reopened</code>)</p>
+            </div>
+          </div>
+
+        </div>
+
+        <!-- Webhook Status & Diagnostics (1 col) -->
+        <div class="bg-surface-800 border border-surface-700/60 rounded-xl p-6 shadow-sm space-y-5">
+          <h2 class="text-base font-bold text-white flex items-center space-x-2">
+            <i data-lucide="activity" class="w-4 h-4 text-emerald-400"></i>
+            <span>Webhook Status</span>
+          </h2>
+
+          <div class="p-4 rounded-xl bg-surface-750/70 border border-surface-700 space-y-3">
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-slate-400">Endpoint Status:</span>
+              <span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-semibold border border-emerald-500/20">Listening</span>
+            </div>
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-slate-400">HMAC Verification:</span>
+              <span class="px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 font-semibold border border-indigo-500/20">Enforced</span>
+            </div>
+            <div class="flex items-center justify-between text-xs">
+              <span class="text-slate-400">Auto-Post to GitHub:</span>
+              <span id="auto-post-badge" class="font-mono text-slate-300">Disabled</span>
+            </div>
+          </div>
+
+          <div class="text-xs text-slate-400 space-y-2">
+            <p class="font-semibold text-slate-300">Testing Delivery:</p>
+            <p>GitHub automatically sends a <code>ping</code> event when you create the webhook. Check the <b>"Recent Deliveries"</b> section in GitHub to confirm the <code>200 OK</code> response.</p>
+          </div>
+        </div>
+
+      </div>
+    </section>
+
+  </main>
+
+  <!-- Findings Detail Modal / Drawer -->
+  <div id="modal-backdrop" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-surface-800 border border-surface-700 rounded-2xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="p-5 border-b border-surface-700 flex items-center justify-between">
+        <h3 id="modal-title" class="font-bold text-white text-base">Review Details</h3>
+        <button onclick="closeModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-surface-700 transition">
+          <i data-lucide="x" class="w-5 h-5"></i>
+        </button>
+      </div>
+      <div id="modal-body" class="p-6 overflow-y-auto space-y-4 text-sm">
+        <!-- Modal content loaded via JS -->
+      </div>
+      <div class="p-4 border-t border-surface-700 bg-surface-750 flex justify-end">
+        <button onclick="closeModal()" class="px-4 py-2 rounded-xl bg-surface-700 hover:bg-surface-600 text-slate-200 text-xs font-semibold">Close</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Footer -->
+  <footer class="border-t border-surface-700/60 bg-surface-800/40 py-6 mt-auto">
+    <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500 space-y-1">
+      <p>PRPulse — Automated Pull Request Code Quality & Security Platform</p>
+      <p>Powered by FastAPI, Pydantic v2, Ruff & Google Gemini / Mock Engine</p>
+    </div>
+  </footer>
+
+  <!-- Application Logic JS -->
+  <script>
+    // Initialize Lucide icons
+    lucide.createIcons();
+
+    // Set Webhook payload URL based on actual domain
+    document.getElementById('webhook-url-input').value = window.location.origin + '/webhooks/github';
+
+    // Global State
+    let currentFindings = [];
+    let currentMarkdown = "";
+
+    // Sample Diffs
+    const SAMPLE_DIFFS = {
+      security: `diff --git a/app/auth.py b/app/auth.py
+new file mode 100644
+index 0000000..abcdef1
+--- /dev/null
++++ b/app/auth.py
+@@ -0,0 +1,8 @@
++import subprocess
++
++AWS_ACCESS_KEY = "AKIAIOSFODNN7EXAMPLE"
++
++def run_backup_command(user_dir):
++    # Arbitrary command injection risk
++    subprocess.run("tar -czf backup.tar.gz " + user_dir, shell=True)
++    eval("print('Backup completed')")
+`,
+      bug: `diff --git a/app/users.py b/app/users.py
+new file mode 100644
+index 0000000..1234567
+--- /dev/null
++++ b/app/users.py
+@@ -0,0 +1,11 @@
++import httpx
++
++def fetch_external_records(user_ids, session):
++    results = []
++    for uid in user_ids:
++        # N+1 query issue inside loop
++        user = session.query(User).filter_by(id=uid).first()
++        # Network call without explicit timeout
++        resp = httpx.get(f"https://api.partner.com/user/{uid}")
++        results.append(resp.json())
++    return results
+`,
+      clean: `diff --git a/app/calculator.py b/app/calculator.py
+new file mode 100644
+index 0000000..89abcdef
+--- /dev/null
++++ b/app/calculator.py
+@@ -0,0 +1,6 @@
++from typing import List
++
++def calculate_moving_average(values: List[float], window_size: int) -> List[float]:
++    if window_size <= 0:
++        raise ValueError("Window size must be greater than zero")
++    return [sum(values[i:i + window_size]) / window_size for i in range(len(values) - window_size + 1)]
+`
+    };
+
+    // Navigation Tab Switching
+    function switchTab(tabName) {
+      const tabs = ['dashboard', 'studio', 'history', 'webhooks'];
+      tabs.forEach(t => {
+        document.getElementById(`tab-${t}`).classList.add('hidden');
+        const navBtn = document.getElementById(`nav-${t}`);
+        if (navBtn) {
+          navBtn.classList.remove('bg-surface-700', 'text-white');
+          navBtn.classList.add('text-slate-300');
+        }
+      });
+
+      document.getElementById(`tab-${tabName}`).classList.remove('hidden');
+      const activeNav = document.getElementById(`nav-${tabName}`);
+      if (activeNav) {
+        activeNav.classList.add('bg-surface-700', 'text-white');
+        activeNav.classList.remove('text-slate-300');
+      }
+
+      if (tabName === 'dashboard') loadDashboardStats();
+      if (tabName === 'history') loadReviewHistory();
+    }
+
+    // Studio Input Mode Toggle
+    function setStudioMode(mode) {
+      if (mode === 'diff') {
+        document.getElementById('studio-mode-diff-box').classList.remove('hidden');
+        document.getElementById('studio-mode-pr-box').classList.add('hidden');
+        document.getElementById('btn-mode-diff').className = "px-3.5 py-1.5 rounded-lg text-xs font-semibold text-white bg-brand-600 transition";
+        document.getElementById('btn-mode-pr').className = "px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition";
+      } else {
+        document.getElementById('studio-mode-diff-box').classList.add('hidden');
+        document.getElementById('studio-mode-pr-box').classList.remove('hidden');
+        document.getElementById('btn-mode-pr').className = "px-3.5 py-1.5 rounded-lg text-xs font-semibold text-white bg-brand-600 transition";
+        document.getElementById('btn-mode-diff').className = "px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition";
+      }
+    }
+
+    function loadSampleDiff(type) {
+      document.getElementById('input-diff-text').value = SAMPLE_DIFFS[type] || '';
+    }
+
+    // Execute Review (Diff or PR)
+    async function executeReview() {
+      const isDiff = !document.getElementById('studio-mode-diff-box').classList.contains('hidden');
+      const btn = document.getElementById('btn-run-analysis');
+      const btnText = document.getElementById('btn-run-text');
+
+      btn.disabled = true;
+      btnText.textContent = "Analyzing Pipeline...";
+
+      try {
+        let endpoint = "";
+        let payload = {};
+
+        if (isDiff) {
+          const diffText = document.getElementById('input-diff-text').value.trim();
+          if (!diffText) {
+            alert("Please paste a unified git diff or click one of the preset sample buttons.");
+            btn.disabled = false;
+            btnText.textContent = "Run Deep Inspection";
+            return;
+          }
+          endpoint = "/review/diff";
+          payload = { title: "Studio Manual Review", diff_text: diffText };
+        } else {
+          const prUrl = document.getElementById('input-pr-url').value.trim();
+          const postToGh = document.getElementById('input-post-github').checked;
+          if (!prUrl) {
+            alert("Please enter a valid GitHub Pull Request URL.");
+            btn.disabled = false;
+            btnText.textContent = "Run Deep Inspection";
+            return;
+          }
+          endpoint = "/review/pr";
+          payload = { pr_url: prUrl, post_to_github: postToGh };
+        }
+
+        const res = await fetch(endpoint, {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify(payload)
+        });
+
+        if (!res.ok) {
+          const errData = await res.json();
+          throw new Error(errData.detail || "Inspection failed");
+        }
+
+        const data = await res.json();
+        renderInspectionResult(data);
+
+      } catch (err) {
+        alert("Review failed: " + err.message);
+      } finally {
+        btn.disabled = false;
+        btnText.textContent = "Run Deep Inspection";
+      }
+    }
+
+    // Render Review Results
+    function renderInspectionResult(data) {
+      document.getElementById('studio-result-container').classList.remove('hidden');
+
+      // Verdict Styling
+      const verdict = data.verdict;
+      const banner = document.getElementById('result-banner');
+      const badge = document.getElementById('result-verdict-badge');
+
+      if (verdict === 'approve') {
+        banner.className = "rounded-xl border border-emerald-500/30 bg-emerald-950/20 p-6";
+        badge.className = "px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/40";
+        badge.innerHTML = `<i data-lucide="check-circle-2" class="w-3.5 h-3.5 mr-1 inline"></i> APPROVE`;
+      } else if (verdict === 'request_changes') {
+        banner.className = "rounded-xl border border-rose-500/30 bg-rose-950/20 p-6";
+        badge.className = "px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-rose-500/20 text-rose-300 border border-rose-500/40";
+        badge.innerHTML = `<i data-lucide="alert-octagon" class="w-3.5 h-3.5 mr-1 inline"></i> REQUEST CHANGES`;
+      } else {
+        banner.className = "rounded-xl border border-amber-500/30 bg-amber-950/20 p-6";
+        badge.className = "px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/40";
+        badge.innerHTML = `<i data-lucide="info" class="w-3.5 h-3.5 mr-1 inline"></i> COMMENT`;
+      }
+
+      document.getElementById('result-time-badge').textContent = `Duration: ${data.metrics.duration_ms}ms`;
+      document.getElementById('result-summary-text').textContent = data.summary;
+
+      document.getElementById('meta-files').textContent = data.metrics.analyzed_files;
+      document.getElementById('meta-static').textContent = data.metrics.static_findings_count;
+      document.getElementById('meta-llm').textContent = data.metrics.llm_findings_count;
+      document.getElementById('meta-tokens').textContent = data.metrics.tokens_used;
+
+      currentFindings = data.findings || [];
+      document.getElementById('findings-count-badge').textContent = currentFindings.length;
+
+      renderFindingsList(currentFindings);
+      lucide.createIcons();
+
+      // Scroll smoothly to results
+      document.getElementById('studio-result-container').scrollIntoView({ behavior: 'smooth' });
+    }
+
+    function renderFindingsList(findings) {
+      const container = document.getElementById('findings-card-list');
+      container.innerHTML = "";
+
+      if (findings.length === 0) {
+        container.innerHTML = `
+          <div class="text-center py-8 rounded-xl bg-surface-800 border border-surface-700/60 text-slate-400">
+            <i data-lucide="check-check" class="w-8 h-8 text-emerald-400 mx-auto mb-2"></i>
+            <p class="font-semibold text-slate-200">Zero defects found</p>
+            <p class="text-xs text-slate-500">The diff adheres cleanly to security and code-quality standards.</p>
+          </div>
+        `;
+        return;
+      }
+
+      findings.forEach((f, idx) => {
+        const card = document.createElement('div');
+        card.className = "rounded-xl bg-surface-800 border border-surface-700 p-4 space-y-3";
+
+        const sevColors = {
+          critical: "text-rose-400 bg-rose-500/10 border-rose-500/30",
+          error: "text-amber-400 bg-amber-500/10 border-amber-500/30",
+          warning: "text-yellow-400 bg-yellow-500/10 border-yellow-500/30",
+          info: "text-blue-400 bg-blue-500/10 border-blue-500/30",
+        };
+
+        const badgeClass = sevColors[f.severity] || sevColors.info;
+
+        card.innerHTML = `
+          <div class="flex flex-wrap items-center justify-between gap-2">
+            <div class="flex items-center space-x-2">
+              <span class="px-2 py-0.5 rounded text-[11px] font-bold uppercase border ${badgeClass}">${f.severity}</span>
+              <span class="px-2 py-0.5 rounded text-[11px] font-medium bg-surface-700 text-slate-300">${f.category}</span>
+              <span class="text-xs text-slate-500 uppercase tracking-wider font-mono">(${f.source})</span>
+            </div>
+            <div class="text-xs font-mono text-slate-400 flex items-center space-x-1">
+              <i data-lucide="file-code" class="w-3.5 h-3.5 text-brand-400"></i>
+              <span class="text-brand-300 font-semibold">${f.file}</span>
+              ${f.line_hint ? `<span class="text-slate-500">:L${f.line_hint}</span>` : ''}
+            </div>
+          </div>
+
+          <p class="text-sm text-slate-200 font-medium">${f.issue}</p>
+
+          <div class="rounded-lg bg-surface-900 border border-surface-700/60 p-3 relative group">
+            <div class="flex items-center justify-between text-[11px] text-slate-400 mb-1.5">
+              <span class="font-semibold uppercase tracking-wider">Suggested Fix:</span>
+              <button onclick="navigator.clipboard.writeText('${escapeJsString(f.suggested_fix)}'); alert('Fix copied to clipboard!');" class="text-brand-400 hover:text-brand-300 font-mono flex items-center space-x-1">
+                <i data-lucide="copy" class="w-3 h-3"></i>
+                <span>Copy Fix</span>
+              </button>
+            </div>
+            <pre class="font-mono text-xs text-emerald-300 overflow-x-auto whitespace-pre-wrap">${f.suggested_fix}</pre>
+          </div>
+        `;
+        container.appendChild(card);
+      });
+    }
+
+    function escapeJsString(str) {
+      return (str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n');
+    }
+
+    // Filter Findings
+    function filterFindings(type) {
+      document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('bg-surface-700', 'text-white'));
+      event.target.classList.add('bg-surface-700', 'text-white');
+
+      if (type === 'all') {
+        renderFindingsList(currentFindings);
+      } else {
+        const filtered = currentFindings.filter(f => f.severity === type || f.category === type);
+        renderFindingsList(filtered);
+      }
+      lucide.createIcons();
+    }
+
+    // Copy Review Markdown
+    function copyReviewMarkdown() {
+      let md = `## 🤖 Automated PR Review Findings\n\n`;
+      currentFindings.forEach((f, idx) => {
+        md += `### ${idx + 1}. [${f.severity.toUpperCase()}] \`${f.file}\` (Line ${f.line_hint || 'N/A'})\n`;
+        md += `- **Category:** \`${f.category}\` (${f.source})\n`;
+        md += `- **Issue:** ${f.issue}\n`;
+        md += `- **Suggested Fix:**\n\`\`\`\n${f.suggested_fix}\n\`\`\`\n\n`;
+      });
+      navigator.clipboard.writeText(md);
+      const btn = document.getElementById('copy-btn-text');
+      btn.textContent = "Copied to Clipboard!";
+      setTimeout(() => btn.textContent = "Copy PR Markdown Comment", 2000);
+    }
+
+    // Load Dashboard Stats
+    async function loadDashboardStats() {
+      try {
+        const [healthRes, reviewsRes] = await Promise.all([
+          fetch('/health'),
+          fetch('/reviews?limit=50')
+        ]);
+
+        if (healthRes.ok) {
+          const h = await healthRes.json();
+          document.getElementById('active-provider-badge').textContent = h.llm_provider.toUpperCase();
+        }
+
+        if (reviewsRes.ok) {
+          const reviews = await reviewsRes.json();
+          document.getElementById('stat-total-reviews').textContent = reviews.length;
+          
+          let totalFindings = 0;
+          let criticalFindings = 0;
+          let totalLatency = 0;
+
+          reviews.forEach(r => {
+            totalFindings += r.total_findings || 0;
+            totalLatency += r.duration_ms || 0;
+          });
+
+          document.getElementById('stat-total-findings').textContent = totalFindings;
+          const avgLatency = reviews.length ? (totalLatency / reviews.length).toFixed(0) : "0";
+          document.getElementById('stat-avg-latency').textContent = avgLatency + "ms";
+
+          renderRecentList(reviews.slice(0, 5));
+        }
+      } catch (e) {
+        console.error("Failed to load dashboard data", e);
+      }
+    }
+
+    function renderRecentList(reviews) {
+      const container = document.getElementById('recent-reviews-list');
+      container.innerHTML = "";
+
+      if (reviews.length === 0) {
+        container.innerHTML = `
+          <div class="py-8 text-center text-slate-500 text-sm">
+            No reviews logged yet. Go to <a href="#" onclick="switchTab('studio')" class="text-brand-400 underline">Review Studio</a> to test your first diff!
+          </div>
+        `;
+        return;
+      }
+
+      reviews.forEach(r => {
+        const row = document.createElement('div');
+        row.className = "py-3 flex items-center justify-between text-xs";
+
+        const verdictBadge = r.verdict === 'approve'
+          ? '<span class="text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded font-bold">APPROVED</span>'
+          : r.verdict === 'request_changes'
+          ? '<span class="text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded font-bold">CHANGES REQ</span>'
+          : '<span class="text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded font-bold">COMMENT</span>';
+
+        row.innerHTML = `
+          <div class="space-y-0.5">
+            <p class="font-semibold text-slate-200">${r.repo || 'Direct Diff'}</p>
+            <p class="text-[11px] text-slate-400">${r.created_at ? new Date(r.created_at).toLocaleString() : 'Just now'}</p>
+          </div>
+          <div class="flex items-center space-x-3">
+            <span class="text-slate-400">${r.total_findings || 0} finding(s)</span>
+            ${verdictBadge}
+          </div>
+        `;
+        container.appendChild(row);
+      });
+    }
+
+    // Load Review History Table
+    async function loadReviewHistory() {
+      const tbody = document.getElementById('history-table-body');
+      tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-6 text-center text-slate-500">Loading history...</td></tr>`;
+
+      try {
+        const res = await fetch('/reviews?limit=50');
+        const reviews = await res.json();
+        tbody.innerHTML = "";
+
+        if (reviews.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-8 text-center text-slate-500">No review runs found in the database.</td></tr>`;
+          return;
+        }
+
+        reviews.forEach(r => {
+          const tr = document.createElement('tr');
+          tr.className = "hover:bg-surface-750/50 transition";
+
+          const verdictBadge = r.verdict === 'approve'
+            ? '<span class="text-emerald-400 font-bold">APPROVE</span>'
+            : r.verdict === 'request_changes'
+            ? '<span class="text-rose-400 font-bold">REQUEST CHANGES</span>'
+            : '<span class="text-amber-400 font-bold">COMMENT</span>';
+
+          tr.innerHTML = `
+            <td class="px-6 py-4 font-medium text-white">${r.repo || 'Direct Diff'} ${r.pull_number ? '#' + r.pull_number : ''}</td>
+            <td class="px-6 py-4">${verdictBadge}</td>
+            <td class="px-6 py-4">${r.total_findings || 0}</td>
+            <td class="px-6 py-4 font-mono text-xs">${r.duration_ms ? r.duration_ms.toFixed(1) + 'ms' : '--'}</td>
+            <td class="px-6 py-4 text-xs text-slate-400">${r.created_at ? new Date(r.created_at).toLocaleDateString() : 'N/A'}</td>
+            <td class="px-6 py-4 text-right">
+              <button onclick="viewReviewDetail('${r.id}')" class="text-xs px-2.5 py-1 rounded bg-surface-700 hover:bg-surface-600 text-brand-300 font-medium transition">
+                Inspect
+              </button>
+            </td>
+          `;
+          tbody.appendChild(tr);
+        });
+      } catch (err) {
+        tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-6 text-center text-rose-400">Failed to load history: ${err.message}</td></tr>`;
+      }
+    }
+
+    // Modal Details
+    async function viewReviewDetail(id) {
+      const modal = document.getElementById('modal-backdrop');
+      const body = document.getElementById('modal-body');
+      modal.classList.remove('hidden');
+      body.innerHTML = "<p class='text-center text-slate-400 py-6'>Loading details...</p>";
+
+      try {
+        const res = await fetch(`/reviews/${id}`);
+        const data = await res.json();
+        
+        let html = `
+          <div class="space-y-3">
+            <div class="flex items-center justify-between pb-3 border-b border-surface-700 text-xs">
+              <span class="font-bold text-slate-200">Verdict: <span class="uppercase text-brand-400">${data.review.verdict}</span></span>
+              <span class="text-slate-400">Duration: ${data.review.duration_ms}ms</span>
+            </div>
+            <p class="text-xs text-slate-300 leading-relaxed">${data.review.summary}</p>
+            <h4 class="font-bold text-xs uppercase tracking-wider text-slate-400 pt-2">Findings (${data.findings.length})</h4>
+        `;
+
+        data.findings.forEach(f => {
+          html += `
+            <div class="p-3 rounded-lg bg-surface-900 border border-surface-700 text-xs space-y-1">
+              <div class="flex items-center justify-between font-mono text-slate-400 text-[11px]">
+                <span class="text-brand-300 font-bold">${f.file}${f.line_hint ? ':' + f.line_hint : ''}</span>
+                <span class="uppercase text-amber-400">${f.severity} / ${f.category}</span>
+              </div>
+              <p class="text-slate-200">${f.issue}</p>
+              <pre class="mt-2 text-emerald-300 overflow-x-auto text-[11px] p-2 bg-surface-950 rounded">${f.suggested_fix}</pre>
+            </div>
+          `;
+        });
+
+        html += `</div>`;
+        body.innerHTML = html;
+
+      } catch (err) {
+        body.innerHTML = `<p class='text-rose-400 text-center py-6'>Failed to fetch details: ${err.message}</p>`;
+      }
+    }
+
+    function closeModal() {
+      document.getElementById('modal-backdrop').classList.add('hidden');
+    }
+
+    // Clipboard helpers
+    function copyToClipboard(elementId, btnTextId) {
+      const el = document.getElementById(elementId);
+      navigator.clipboard.writeText(el.value);
+      const btn = document.getElementById(btnTextId);
+      btn.textContent = "Copied!";
+      setTimeout(() => btn.textContent = "Copy", 1500);
+    }
+
+    function toggleSecretVisibility() {
+      const input = document.getElementById('webhook-secret-input');
+      const isPass = input.type === 'password';
+      input.type = isPass ? 'text' : 'password';
+    }
+
+    // Initial Load
+    loadDashboardStats();
+  </script>
+</body>
+</html>

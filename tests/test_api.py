@@ -4,6 +4,20 @@ import json
 from app.models.schemas import FindingSeverity, ReviewVerdict
 
 
+def test_dashboard_frontend(client):
+    response = client.get("/")
+    assert response.status_code == 200
+    assert "PRPulse" in response.text
+    assert "text/html" in response.headers.get("content-type", "")
+
+
+def test_webhook_get_status(client):
+    response = client.get("/webhooks/github")
+    assert response.status_code == 200
+    data = response.json()
+    assert data["status"] == "listening"
+
+
 def test_health_check(client):
     response = client.get("/health")
     assert response.status_code == 200
