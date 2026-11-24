@@ -1,15 +1,15 @@
 <!DOCTYPE html>
-<html lang="en" class="dark">
+<html lang="en" class="dark h-full">
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>PRPulse — AI Pull Request Reviewer & Code Quality Platform</title>
+  <title>PRPulse — Continuous Code Quality & Security Gate</title>
+  
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
-  <!-- Tailwind CSS CDN -->
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=JetBrains+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+  
   <script src="https://cdn.tailwindcss.com"></script>
-  <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
   <script>
     tailwind.config = {
@@ -17,23 +17,24 @@
       theme: {
         extend: {
           fontFamily: {
-            sans: ['Inter', 'sans-serif'],
-            mono: ['JetBrains Mono', 'monospace'],
+            sans: ['Inter', '-apple-system', 'BlinkMacSystemFont', 'Segoe UI', 'Roboto', 'sans-serif'],
+            mono: ['JetBrains Mono', 'SFMono-Regular', 'Consolas', 'monospace'],
           },
           colors: {
-            brand: {
-              50: '#eef2ff',
-              100: '#e0e7ff',
-              500: '#6366f1',
-              600: '#4f46e5',
-              700: '#4338ca',
+            slate: {
+              950: '#07090e',
+              900: '#0c0f17',
+              850: '#111520',
+              800: '#171c2b',
+              750: '#1e2436',
+              700: '#272f44',
+              600: '#38435e',
+              500: '#526082',
             },
-            surface: {
-              900: '#0b0f19',
-              800: '#111827',
-              750: '#161f33',
-              700: '#1f2937',
-              600: '#374151',
+            accent: {
+              DEFAULT: '#2563eb',
+              hover: '#1d4ed8',
+              muted: '#1e3a8a',
             }
           }
         }
@@ -41,847 +42,729 @@
     }
   </script>
   <style>
-    /* Custom scrollbars */
-    ::-webkit-scrollbar { width: 6px; height: 6px; }
-    ::-webkit-scrollbar-track { background: #0b0f19; }
-    ::-webkit-scrollbar-thumb { background: #2d3748; border-radius: 3px; }
-    ::-webkit-scrollbar-thumb:hover { background: #4a5568; }
-    .pulse-glow { box-shadow: 0 0 25px -5px rgba(99, 102, 241, 0.4); }
+    /* Professional engineering console scrollbars */
+    ::-webkit-scrollbar { width: 5px; height: 5px; }
+    ::-webkit-scrollbar-track { background: #0c0f17; }
+    ::-webkit-scrollbar-thumb { background: #272f44; border-radius: 2px; }
+    ::-webkit-scrollbar-thumb:hover { background: #38435e; }
+    
+    .tab-active {
+      background-color: #171c2b;
+      color: #f8fafc;
+      border-color: #38435e;
+    }
   </style>
 </head>
-<body class="bg-surface-900 text-slate-100 font-sans min-h-screen flex flex-col antialiased selection:bg-brand-500 selection:text-white">
+<body class="bg-slate-950 text-slate-200 font-sans h-full flex flex-col antialiased selection:bg-slate-700 selection:text-white">
 
-  <!-- Top Navigation Bar -->
-  <header class="border-b border-surface-700/60 bg-surface-800/80 backdrop-blur sticky top-0 z-40">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 h-16 flex items-center justify-between">
+  <!-- Unified Enterprise Top Navigation -->
+  <header class="border-b border-slate-800 bg-slate-900/90 backdrop-blur shrink-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 h-14 flex items-center justify-between">
       
-      <!-- Logo & Brand -->
-      <div class="flex items-center space-x-3 cursor-pointer" onclick="switchTab('dashboard')">
-        <div class="w-10 h-10 rounded-xl bg-gradient-to-tr from-brand-600 to-violet-500 flex items-center justify-center text-white shadow-lg shadow-brand-500/20">
-          <i data-lucide="git-pull-request" class="w-5 h-5"></i>
-        </div>
-        <div>
-          <div class="flex items-center space-x-2">
-            <span class="font-extrabold text-xl tracking-tight bg-gradient-to-r from-white via-slate-200 to-brand-100 bg-clip-text text-transparent">PRPulse</span>
-            <span class="text-[10px] uppercase font-bold tracking-widest px-1.5 py-0.5 rounded bg-brand-500/10 text-brand-400 border border-brand-500/20">v1.0</span>
+      <!-- Brand & Project Selector -->
+      <div class="flex items-center space-x-6">
+        <div class="flex items-center space-x-2.5 cursor-pointer" onclick="switchView('overview')">
+          <div class="w-7 h-7 rounded-md bg-slate-800 border border-slate-700 flex items-center justify-center text-slate-100">
+            <i data-lucide="git-pull-request" class="w-4 h-4"></i>
           </div>
-          <p class="text-xs text-slate-400 hidden sm:block">AI & Static Code Quality Engine</p>
+          <div class="flex items-center space-x-2">
+            <span class="font-semibold text-sm tracking-tight text-white">PRPulse</span>
+            <span class="text-slate-600 font-mono text-xs">/</span>
+            <span class="text-xs font-mono text-slate-400">code-quality-gate</span>
+          </div>
         </div>
+
+        <!-- Primary View Navigation -->
+        <nav class="hidden md:flex items-center space-x-1 pl-4 border-l border-slate-800">
+          <button onclick="switchView('overview')" id="nav-overview" class="view-tab tab-active px-3 py-1.5 rounded-md text-xs font-medium border border-transparent transition flex items-center space-x-1.5">
+            <i data-lucide="bar-chart-2" class="w-3.5 h-3.5"></i>
+            <span>Overview</span>
+          </button>
+          <button onclick="switchView('console')" id="nav-console" class="view-tab px-3 py-1.5 rounded-md text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-850 border border-transparent transition flex items-center space-x-1.5">
+            <i data-lucide="terminal" class="w-3.5 h-3.5"></i>
+            <span>Inspection Console</span>
+          </button>
+          <button onclick="switchView('audit')" id="nav-audit" class="view-tab px-3 py-1.5 rounded-md text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-850 border border-transparent transition flex items-center space-x-1.5">
+            <i data-lucide="shield-check" class="w-3.5 h-3.5"></i>
+            <span>Audit Trail</span>
+          </button>
+          <button onclick="switchView('webhooks')" id="nav-webhooks" class="view-tab px-3 py-1.5 rounded-md text-xs font-medium text-slate-400 hover:text-slate-200 hover:bg-slate-850 border border-transparent transition flex items-center space-x-1.5">
+            <i data-lucide="webhook" class="w-3.5 h-3.5"></i>
+            <span>Webhooks</span>
+          </button>
+        </nav>
       </div>
 
-      <!-- Navigation Tabs -->
-      <nav class="hidden md:flex items-center space-x-1">
-        <button onclick="switchTab('dashboard')" id="nav-dashboard" class="nav-btn px-3 py-2 text-sm font-medium rounded-lg text-white bg-surface-700 flex items-center space-x-2 transition">
-          <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
-          <span>Dashboard</span>
-        </button>
-        <button onclick="switchTab('studio')" id="nav-studio" class="nav-btn px-3 py-2 text-sm font-medium rounded-lg text-slate-300 hover:text-white hover:bg-surface-700/50 flex items-center space-x-2 transition">
-          <i data-lucide="terminal" class="w-4 h-4"></i>
-          <span>Review Studio</span>
-        </button>
-        <button onclick="switchTab('history')" id="nav-history" class="nav-btn px-3 py-2 text-sm font-medium rounded-lg text-slate-300 hover:text-white hover:bg-surface-700/50 flex items-center space-x-2 transition">
-          <i data-lucide="history" class="w-4 h-4"></i>
-          <span>Audit History</span>
-        </button>
-        <button onclick="switchTab('webhooks')" id="nav-webhooks" class="nav-btn px-3 py-2 text-sm font-medium rounded-lg text-slate-300 hover:text-white hover:bg-surface-700/50 flex items-center space-x-2 transition">
-          <i data-lucide="webhook" class="w-4 h-4"></i>
-          <span>Webhook Setup</span>
-        </button>
-      </nav>
-
-      <!-- Right Controls -->
+      <!-- Right System Status & External Links -->
       <div class="flex items-center space-x-3">
-        <!-- System Health Pill -->
-        <div id="health-pill" class="flex items-center space-x-2 text-xs px-2.5 py-1 rounded-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-          <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
-          <span id="health-text" class="font-medium">Engine Ready</span>
+        <!-- Live Engine Status -->
+        <div class="flex items-center space-x-2 px-2.5 py-1 rounded bg-slate-850 border border-slate-800 text-xs">
+          <span class="w-1.5 h-1.5 rounded-full bg-emerald-500"></span>
+          <span class="text-slate-400 text-[11px] font-mono">ENGINE:</span>
+          <span id="header-engine-mode" class="font-mono text-[11px] font-semibold text-slate-200">ONLINE</span>
         </div>
 
-        <!-- Swagger Docs Link -->
-        <a href="/docs" target="_blank" class="hidden sm:flex items-center space-x-1.5 text-xs font-semibold px-3 py-1.5 rounded-lg bg-surface-700/60 hover:bg-surface-700 text-slate-300 hover:text-white border border-surface-600 transition">
-          <i data-lucide="book-open" class="w-3.5 h-3.5"></i>
-          <span>API Docs</span>
+        <!-- API Reference -->
+        <a href="/docs" target="_blank" class="px-2.5 py-1 rounded bg-slate-850 hover:bg-slate-800 border border-slate-800 text-slate-300 hover:text-white text-xs font-medium transition flex items-center space-x-1.5">
+          <i data-lucide="file-code-2" class="w-3.5 h-3.5 text-slate-400"></i>
+          <span>API Reference</span>
         </a>
 
-        <!-- GitHub Repo Link -->
-        <a href="https://github.com/arimit2023chatterjee-sys/PRPulse" target="_blank" class="p-2 rounded-lg bg-surface-700/40 hover:bg-surface-700 text-slate-300 hover:text-white border border-surface-600 transition" title="View Source on GitHub">
+        <!-- GitHub Repo -->
+        <a href="https://github.com/arimit2023chatterjee-sys/PRPulse" target="_blank" class="p-1.5 rounded bg-slate-850 hover:bg-slate-800 border border-slate-800 text-slate-400 hover:text-white transition" title="Repository">
           <i data-lucide="github" class="w-4 h-4"></i>
         </a>
       </div>
     </div>
   </header>
 
-  <!-- Mobile Navigation Bar -->
-  <div class="md:hidden border-b border-surface-700 bg-surface-800 px-4 py-2 flex items-center justify-around text-xs">
-    <button onclick="switchTab('dashboard')" class="flex flex-col items-center py-1 text-brand-400">
-      <i data-lucide="layout-dashboard" class="w-4 h-4 mb-0.5"></i>
-      <span>Dashboard</span>
-    </button>
-    <button onclick="switchTab('studio')" class="flex flex-col items-center py-1 text-slate-400">
-      <i data-lucide="terminal" class="w-4 h-4 mb-0.5"></i>
-      <span>Studio</span>
-    </button>
-    <button onclick="switchTab('history')" class="flex flex-col items-center py-1 text-slate-400">
-      <i data-lucide="history" class="w-4 h-4 mb-0.5"></i>
-      <span>History</span>
-    </button>
-    <button onclick="switchTab('webhooks')" class="flex flex-col items-center py-1 text-slate-400">
-      <i data-lucide="webhook" class="w-4 h-4 mb-0.5"></i>
-      <span>Webhook</span>
-    </button>
+  <!-- Mobile Tab Bar -->
+  <div class="md:hidden border-b border-slate-800 bg-slate-900 px-4 py-2 flex items-center justify-around text-xs">
+    <button onclick="switchView('overview')" class="px-2 py-1 text-slate-200">Overview</button>
+    <button onclick="switchView('console')" class="px-2 py-1 text-slate-400">Console</button>
+    <button onclick="switchView('audit')" class="px-2 py-1 text-slate-400">Audit</button>
+    <button onclick="switchView('webhooks')" class="px-2 py-1 text-slate-400">Webhooks</button>
   </div>
 
-  <!-- Main Content Container -->
-  <main class="flex-1 max-w-7xl w-full mx-auto px-4 sm:px-6 lg:px-8 py-8">
+  <!-- Primary Workspace Content -->
+  <main class="flex-1 overflow-y-auto">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 py-6">
 
-    <!-- ============================================================== -->
-    <!-- TAB 1: DASHBOARD OVERVIEW -->
-    <!-- ============================================================== -->
-    <section id="tab-dashboard" class="space-y-8">
-      
-      <!-- Hero Welcome Banner -->
-      <div class="relative overflow-hidden rounded-2xl bg-gradient-to-r from-surface-800 via-surface-750 to-brand-900/30 border border-surface-700/70 p-6 sm:p-8">
-        <div class="relative z-10 max-w-2xl">
-          <div class="inline-flex items-center space-x-2 px-2.5 py-1 rounded-full bg-brand-500/10 text-brand-300 text-xs font-semibold mb-4 border border-brand-500/20">
-            <i data-lucide="sparkles" class="w-3.5 h-3.5"></i>
-            <span>Automated Pull Request Reviewer & Security Gate</span>
-          </div>
-          <h1 class="text-2xl sm:text-3xl font-bold tracking-tight text-white mb-2">
-            Accelerate PR merges with automated code intelligence.
-          </h1>
-          <p class="text-slate-300 text-sm sm:text-base leading-relaxed mb-6">
-            PRPulse runs a deterministic static analysis pass alongside an LLM review, surfacing critical bugs, exposed credentials, SQL/command injections, and performance leaks before production.
-          </p>
-          <div class="flex flex-wrap gap-3">
-            <button onclick="switchTab('studio')" class="px-4 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-medium text-sm flex items-center space-x-2 shadow-lg shadow-brand-600/30 transition">
-              <i data-lucide="play" class="w-4 h-4 fill-current"></i>
-              <span>Open Review Studio</span>
-            </button>
-            <button onclick="switchTab('webhooks')" class="px-4 py-2.5 rounded-xl bg-surface-700 hover:bg-surface-600 text-slate-200 font-medium text-sm flex items-center space-x-2 border border-surface-600 transition">
-              <i data-lucide="settings" class="w-4 h-4"></i>
-              <span>Connect GitHub Webhook</span>
-            </button>
-          </div>
-        </div>
-        <div class="absolute -right-10 -bottom-10 w-80 h-80 bg-brand-500/10 rounded-full blur-3xl pointer-events-none"></div>
-      </div>
-
-      <!-- Live KPI Metrics Cards -->
-      <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
-        <!-- Card 1 -->
-        <div class="bg-surface-800 border border-surface-700/60 rounded-xl p-5 shadow-sm">
-          <div class="flex items-center justify-between text-slate-400 mb-3">
-            <span class="text-xs font-semibold uppercase tracking-wider">Total PR Reviews</span>
-            <div class="p-2 rounded-lg bg-surface-700/50 text-brand-400">
-              <i data-lucide="git-commit" class="w-4 h-4"></i>
-            </div>
-          </div>
-          <div class="text-2xl sm:text-3xl font-extrabold text-white" id="stat-total-reviews">--</div>
-          <p class="text-xs text-slate-400 mt-1 flex items-center">
-            <span class="text-emerald-400 font-medium mr-1.5">● Active</span> Persisted in SQLite
-          </p>
-        </div>
-
-        <!-- Card 2 -->
-        <div class="bg-surface-800 border border-surface-700/60 rounded-xl p-5 shadow-sm">
-          <div class="flex items-center justify-between text-slate-400 mb-3">
-            <span class="text-xs font-semibold uppercase tracking-wider">Defects Discovered</span>
-            <div class="p-2 rounded-lg bg-surface-700/50 text-amber-400">
-              <i data-lucide="alert-triangle" class="w-4 h-4"></i>
-            </div>
-          </div>
-          <div class="text-2xl sm:text-3xl font-extrabold text-white" id="stat-total-findings">--</div>
-          <p class="text-xs text-slate-400 mt-1">Across bugs, security & performance</p>
-        </div>
-
-        <!-- Card 3 -->
-        <div class="bg-surface-800 border border-surface-700/60 rounded-xl p-5 shadow-sm">
-          <div class="flex items-center justify-between text-slate-400 mb-3">
-            <span class="text-xs font-semibold uppercase tracking-wider">Security Blockers</span>
-            <div class="p-2 rounded-lg bg-surface-700/50 text-rose-400">
-              <i data-lucide="shield-alert" class="w-4 h-4"></i>
-            </div>
-          </div>
-          <div class="text-2xl sm:text-3xl font-extrabold text-white" id="stat-critical-findings">--</div>
-          <p class="text-xs text-slate-400 mt-1">Secrets & RCE vectors blocked</p>
-        </div>
-
-        <!-- Card 4 -->
-        <div class="bg-surface-800 border border-surface-700/60 rounded-xl p-5 shadow-sm">
-          <div class="flex items-center justify-between text-slate-400 mb-3">
-            <span class="text-xs font-semibold uppercase tracking-wider">Avg Latency</span>
-            <div class="p-2 rounded-lg bg-surface-700/50 text-cyan-400">
-              <i data-lucide="zap" class="w-4 h-4"></i>
-            </div>
-          </div>
-          <div class="text-2xl sm:text-3xl font-extrabold text-white" id="stat-avg-latency">--</div>
-          <p class="text-xs text-slate-400 mt-1">Static check + LLM pass</p>
-        </div>
-      </div>
-
-      <!-- Recent Reviews Feed & Quick Action Grid -->
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+      <!-- ============================================================== -->
+      <!-- VIEW 1: OVERVIEW & TELEMETRY -->
+      <!-- ============================================================== -->
+      <section id="view-overview" class="space-y-6">
         
-        <!-- Recent Reviews Feed (2 cols) -->
-        <div class="lg:col-span-2 bg-surface-800 border border-surface-700/60 rounded-xl p-6 shadow-sm">
-          <div class="flex items-center justify-between mb-5">
-            <div>
-              <h2 class="text-base font-bold text-white">Recent Review Runs</h2>
-              <p class="text-xs text-slate-400">Latest pull requests inspected by the pipeline</p>
-            </div>
-            <button onclick="switchTab('history')" class="text-xs font-medium text-brand-400 hover:text-brand-300 flex items-center space-x-1">
-              <span>View All</span>
-              <i data-lucide="chevron-right" class="w-3.5 h-3.5"></i>
-            </button>
+        <!-- Header Sub-bar -->
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-800/80">
+          <div>
+            <h1 class="text-base font-semibold text-white tracking-tight">Code Quality & Security Telemetry</h1>
+            <p class="text-xs text-slate-400 mt-0.5">Continuous inspection status across pull requests, diff commits, and branch merges.</p>
           </div>
-
-          <div id="recent-reviews-list" class="divide-y divide-surface-700/60">
-            <!-- Loading state -->
-            <div class="py-8 text-center text-slate-500 text-sm">
-              <i data-lucide="loader" class="w-5 h-5 mx-auto mb-2 animate-spin text-brand-400"></i>
-              Loading review history...
-            </div>
+          <div class="flex items-center space-x-2">
+            <button onclick="switchView('console')" class="px-3 py-1.5 rounded-md bg-white hover:bg-slate-100 text-slate-950 text-xs font-semibold shadow-sm transition flex items-center space-x-1.5">
+              <i data-lucide="plus" class="w-3.5 h-3.5"></i>
+              <span>New Inspection</span>
+            </button>
           </div>
         </div>
 
-        <!-- System Architecture & Pipeline Info (1 col) -->
-        <div class="bg-surface-800 border border-surface-700/60 rounded-xl p-6 shadow-sm space-y-5">
-          <h2 class="text-base font-bold text-white flex items-center space-x-2">
-            <i data-lucide="cpu" class="w-4 h-4 text-brand-400"></i>
-            <span>Inspection Engine</span>
-          </h2>
+        <!-- Metrics Strip (Clean, high-density) -->
+        <div class="grid grid-cols-2 md:grid-cols-4 gap-3">
+          <div class="bg-slate-900 border border-slate-800 rounded-lg p-4">
+            <p class="text-[11px] font-mono uppercase tracking-wider text-slate-400">Total Scans</p>
+            <p class="text-2xl font-semibold font-mono text-white mt-1" id="kpi-total-scans">0</p>
+            <p class="text-[11px] text-slate-400 mt-1">Logged in SQLite</p>
+          </div>
+          <div class="bg-slate-900 border border-slate-800 rounded-lg p-4">
+            <p class="text-[11px] font-mono uppercase tracking-wider text-slate-400">Defects Flagged</p>
+            <p class="text-2xl font-semibold font-mono text-amber-400 mt-1" id="kpi-total-defects">0</p>
+            <p class="text-[11px] text-slate-400 mt-1">Bugs & edge cases</p>
+          </div>
+          <div class="bg-slate-900 border border-slate-800 rounded-lg p-4">
+            <p class="text-[11px] font-mono uppercase tracking-wider text-slate-400">Security Gate Blocks</p>
+            <p class="text-2xl font-semibold font-mono text-rose-400 mt-1" id="kpi-security-blocks">0</p>
+            <p class="text-[11px] text-slate-400 mt-1">Hardcoded secrets & RCE</p>
+          </div>
+          <div class="bg-slate-900 border border-slate-800 rounded-lg p-4">
+            <p class="text-[11px] font-mono uppercase tracking-wider text-slate-400">Mean Inspection Latency</p>
+            <p class="text-2xl font-semibold font-mono text-cyan-400 mt-1" id="kpi-mean-latency">0ms</p>
+            <p class="text-[11px] text-slate-400 mt-1">AST parse + heuristics</p>
+          </div>
+        </div>
 
-          <div class="space-y-4 text-xs">
-            <!-- Step 1 -->
-            <div class="flex items-start space-x-3 p-3 rounded-lg bg-surface-750/70 border border-surface-700/40">
-              <div class="w-6 h-6 rounded-md bg-brand-500/10 text-brand-400 flex items-center justify-center font-bold text-xs shrink-0">1</div>
-              <div>
-                <p class="font-semibold text-slate-200">Diff Parser & Filtering</p>
-                <p class="text-slate-400 mt-0.5">Filters lockfiles, images, binaries; maps target 1-indexed line numbers.</p>
-              </div>
+        <!-- Recent Runs & Architecture Grid -->
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          <!-- Recent Activity Table (2 Cols) -->
+          <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-lg overflow-hidden">
+            <div class="px-4 py-3 border-b border-slate-800 flex items-center justify-between">
+              <span class="text-xs font-semibold text-slate-200">Recent Inspection Pipeline Runs</span>
+              <button onclick="switchView('audit')" class="text-xs text-slate-400 hover:text-slate-200 font-medium">View Full Ledger &rarr;</button>
+            </div>
+            <div id="overview-recent-container" class="divide-y divide-slate-800/60">
+              <div class="p-6 text-center text-xs text-slate-400">Loading pipeline telemetry...</div>
+            </div>
+          </div>
+
+          <!-- Architecture & Deterministic Pass Specs (1 Col) -->
+          <div class="bg-slate-900 border border-slate-800 rounded-lg p-4 space-y-4">
+            <div class="border-b border-slate-800 pb-2">
+              <span class="text-xs font-semibold text-slate-200">Enforced Verification Gates</span>
             </div>
 
-            <!-- Step 2 -->
-            <div class="flex items-start space-x-3 p-3 rounded-lg bg-surface-750/70 border border-surface-700/40">
-              <div class="w-6 h-6 rounded-md bg-emerald-500/10 text-emerald-400 flex items-center justify-center font-bold text-xs shrink-0">2</div>
-              <div>
-                <p class="font-semibold text-slate-200">Fast Static Analyzer</p>
-                <p class="text-slate-400 mt-0.5">High-confidence secrets regex, Python AST check (eval, shell=True, SQL injection), and Ruff.</p>
+            <div class="space-y-3 text-xs">
+              <div class="p-2.5 rounded bg-slate-850 border border-slate-800">
+                <div class="flex items-center justify-between mb-1">
+                  <span class="font-medium text-slate-200">1. Diff Sanitation & Mapping</span>
+                  <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-800 text-slate-400">PRE-PASS</span>
+                </div>
+                <p class="text-slate-400 text-[11px] leading-relaxed">Excludes binaries, lockfiles, and minified bundles. Calculates exact 1-indexed target line anchors.</p>
               </div>
-            </div>
 
-            <!-- Step 3 -->
-            <div class="flex items-start space-x-3 p-3 rounded-lg bg-surface-750/70 border border-surface-700/40">
-              <div class="w-6 h-6 rounded-md bg-indigo-500/10 text-indigo-400 flex items-center justify-center font-bold text-xs shrink-0">3</div>
-              <div>
-                <p class="font-semibold text-slate-200">Structured LLM Review Pass</p>
-                <p class="text-slate-400 mt-0.5">Evaluates logical bugs, N+1 queries, concurrency issues with strict Pydantic schemas.</p>
+              <div class="p-2.5 rounded bg-slate-850 border border-slate-800">
+                <div class="flex items-center justify-between mb-1">
+                  <span class="font-medium text-slate-200">2. Deterministic AST Security Pass</span>
+                  <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-emerald-950 text-emerald-400 border border-emerald-800/50">STATIC</span>
+                </div>
+                <p class="text-slate-400 text-[11px] leading-relaxed">High-entropy secret regexes (AWS, PATs, private keys) + Python AST inspection (`subprocess(shell=True)`, `eval`, SQL string interpolation, bare `except:`).</p>
               </div>
-            </div>
 
-            <!-- Step 4 -->
-            <div class="flex items-start space-x-3 p-3 rounded-lg bg-surface-750/70 border border-surface-700/40">
-              <div class="w-6 h-6 rounded-md bg-violet-500/10 text-violet-400 flex items-center justify-center font-bold text-xs shrink-0">4</div>
-              <div>
-                <p class="font-semibold text-slate-200">GitHub REST & Persistence</p>
-                <p class="text-slate-400 mt-0.5">Posts formatted review verdict back to PR and saves audit trail in SQLite.</p>
+              <div class="p-2.5 rounded bg-slate-850 border border-slate-800">
+                <div class="flex items-center justify-between mb-1">
+                  <span class="font-medium text-slate-200">3. Schema-Constrained Review</span>
+                  <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-blue-950 text-blue-400 border border-blue-800/50">LLM / RULES</span>
+                </div>
+                <p class="text-slate-400 text-[11px] leading-relaxed">Evaluates N+1 database queries, unhandled NoneTypes, missing HTTP timeouts, and resource leaks strictly via Pydantic v2 schemas.</p>
+              </div>
+
+              <div class="p-2.5 rounded bg-slate-850 border border-slate-800">
+                <div class="flex items-center justify-between mb-1">
+                  <span class="font-medium text-slate-200">4. GitHub Status Reporting</span>
+                  <span class="text-[10px] font-mono px-1.5 py-0.2 rounded bg-slate-800 text-slate-400">PUBLISH</span>
+                </div>
+                <p class="text-slate-400 text-[11px] leading-relaxed">Submits formal PR review events (`APPROVE`, `REQUEST_CHANGES`, `COMMENT`) directly to the GitHub REST API.</p>
               </div>
             </div>
           </div>
 
-          <div class="pt-2 border-t border-surface-700">
-            <div class="flex items-center justify-between text-xs text-slate-400">
-              <span>Active Provider:</span>
-              <span id="active-provider-badge" class="font-mono text-brand-300 font-semibold px-2 py-0.5 rounded bg-surface-700">MOCK</span>
-            </div>
-          </div>
         </div>
 
-      </div>
+      </section>
 
-    </section>
-
-    <!-- ============================================================== -->
-    <!-- TAB 2: REVIEW STUDIO (Interactive Playground) -->
-    <!-- ============================================================== -->
-    <section id="tab-studio" class="hidden space-y-6">
-      
-      <!-- Studio Header -->
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-surface-700/60">
-        <div>
-          <h1 class="text-xl font-bold text-white">Review Studio</h1>
-          <p class="text-xs sm:text-sm text-slate-400">Test diff inspection in real-time or review live GitHub Pull Requests.</p>
-        </div>
-
-        <!-- Mode Toggle (Diff vs PR) -->
-        <div class="inline-flex p-1 rounded-xl bg-surface-800 border border-surface-700">
-          <button onclick="setStudioMode('diff')" id="btn-mode-diff" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-white bg-brand-600 transition">
-            Direct Diff Input
-          </button>
-          <button onclick="setStudioMode('pr')" id="btn-mode-pr" class="px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition">
-            GitHub PR URL
-          </button>
-        </div>
-      </div>
-
-      <!-- Studio Input Form -->
-      <div class="bg-surface-800 border border-surface-700/60 rounded-xl p-5 shadow-sm space-y-4">
+      <!-- ============================================================== -->
+      <!-- VIEW 2: INSPECTION CONSOLE -->
+      <!-- ============================================================== -->
+      <section id="view-console" class="hidden space-y-6">
         
-        <!-- SUB-MODE A: Direct Diff Input -->
-        <div id="studio-mode-diff-box" class="space-y-3">
-          <div class="flex flex-wrap items-center justify-between gap-2">
-            <label class="text-xs font-semibold uppercase tracking-wider text-slate-300">Unified Code Diff</label>
-            
-            <!-- Quick Preload Sample Diffs -->
-            <div class="flex flex-wrap items-center gap-1.5">
-              <span class="text-xs text-slate-400 mr-1">Load Preset:</span>
-              <button onclick="loadSampleDiff('security')" class="text-xs px-2.5 py-1 rounded-lg bg-surface-700 hover:bg-surface-600 text-rose-300 border border-rose-500/20 transition">
-                🔥 Security Exploit
-              </button>
-              <button onclick="loadSampleDiff('bug')" class="text-xs px-2.5 py-1 rounded-lg bg-surface-700 hover:bg-surface-600 text-amber-300 border border-amber-500/20 transition">
-                ⚠️ N+1 & Timeout Bug
-              </button>
-              <button onclick="loadSampleDiff('clean')" class="text-xs px-2.5 py-1 rounded-lg bg-surface-700 hover:bg-surface-600 text-emerald-300 border border-emerald-500/20 transition">
-                ✅ Clean Code
-              </button>
-            </div>
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-800/80">
+          <div>
+            <h1 class="text-base font-semibold text-white tracking-tight">Inspection Console</h1>
+            <p class="text-xs text-slate-400 mt-0.5">Submit unified diffs or target active GitHub pull requests for comprehensive analysis.</p>
           </div>
 
-          <textarea id="input-diff-text" rows="8" placeholder="Paste standard unified git diff here (diff --git a/... b/...)..." class="w-full bg-surface-900 border border-surface-700 rounded-lg p-3 font-mono text-xs text-slate-200 focus:outline-none focus:border-brand-500 transition leading-relaxed"></textarea>
-        </div>
-
-        <!-- SUB-MODE B: GitHub PR URL -->
-        <div id="studio-mode-pr-box" class="hidden space-y-3">
-          <label class="text-xs font-semibold uppercase tracking-wider text-slate-300">GitHub Pull Request URL</label>
-          <div class="relative">
-            <div class="absolute inset-y-0 left-0 pl-3.5 flex items-center pointer-events-none text-slate-400">
-              <i data-lucide="github" class="w-4 h-4"></i>
-            </div>
-            <input type="text" id="input-pr-url" placeholder="https://github.com/owner/repository/pull/42" class="w-full pl-10 pr-4 py-2.5 bg-surface-900 border border-surface-700 rounded-lg text-sm text-slate-200 placeholder-slate-500 focus:outline-none focus:border-brand-500 transition font-mono">
-          </div>
-          <div class="flex items-center space-x-2 text-xs text-slate-400">
-            <input type="checkbox" id="input-post-github" class="rounded bg-surface-900 border-surface-600 text-brand-600 focus:ring-0">
-            <label for="input-post-github">Post review comment directly back to the GitHub PR (Requires GITHUB_TOKEN)</label>
-          </div>
-        </div>
-
-        <!-- Trigger Button & Options -->
-        <div class="flex items-center justify-between pt-2">
-          <span class="text-xs text-slate-400">Fast deterministic AST + LLM Pass</span>
-          <button id="btn-run-analysis" onclick="executeReview()" class="px-5 py-2.5 rounded-xl bg-brand-600 hover:bg-brand-500 text-white font-semibold text-sm flex items-center space-x-2 shadow-lg shadow-brand-500/25 transition disabled:opacity-50">
-            <i data-lucide="search-code" class="w-4 h-4"></i>
-            <span id="btn-run-text">Run Deep Inspection</span>
-          </button>
-        </div>
-      </div>
-
-      <!-- Studio Inspection Result Container (Hidden until analysis runs) -->
-      <div id="studio-result-container" class="hidden space-y-6">
-        
-        <!-- Executive Summary Banner -->
-        <div id="result-banner" class="rounded-xl border p-6 transition">
-          <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
-            <div class="flex items-center space-x-3">
-              <span id="result-verdict-badge" class="px-3 py-1 rounded-full text-xs font-extrabold uppercase tracking-wider flex items-center space-x-1.5">
-                <!-- Verdict populated via JS -->
-              </span>
-              <span id="result-time-badge" class="text-xs text-slate-400 font-mono"></span>
-            </div>
-
-            <!-- Copy Markdown Review Button -->
-            <button onclick="copyReviewMarkdown()" class="self-start sm:self-auto text-xs px-3 py-1.5 rounded-lg bg-surface-700 hover:bg-surface-600 text-slate-200 border border-surface-600 flex items-center space-x-1.5 transition">
-              <i data-lucide="copy" class="w-3.5 h-3.5"></i>
-              <span id="copy-btn-text">Copy PR Markdown Comment</span>
+          <!-- Input Mode Switcher -->
+          <div class="inline-flex rounded-md bg-slate-900 border border-slate-800 p-0.5 text-xs">
+            <button onclick="setConsoleMode('diff')" id="mode-btn-diff" class="px-3 py-1 font-medium rounded text-white bg-slate-800">
+              Raw Unified Diff
+            </button>
+            <button onclick="setConsoleMode('pr')" id="mode-btn-pr" class="px-3 py-1 font-medium rounded text-slate-400 hover:text-white">
+              GitHub PR URL
             </button>
           </div>
-
-          <h3 class="text-base font-bold text-white mb-1">Executive Summary</h3>
-          <p id="result-summary-text" class="text-sm text-slate-300 leading-relaxed"></p>
-
-          <!-- Result Metrics Bar -->
-          <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-4 border-t border-surface-700/60 text-xs">
-            <div>
-              <span class="text-slate-400">Files Inspected:</span>
-              <span id="meta-files" class="font-bold text-slate-200 ml-1">0</span>
-            </div>
-            <div>
-              <span class="text-slate-400">Static Checks:</span>
-              <span id="meta-static" class="font-bold text-slate-200 ml-1">0</span>
-            </div>
-            <div>
-              <span class="text-slate-400">LLM Findings:</span>
-              <span id="meta-llm" class="font-bold text-slate-200 ml-1">0</span>
-            </div>
-            <div>
-              <span class="text-slate-400">Token Cost:</span>
-              <span id="meta-tokens" class="font-bold text-slate-200 ml-1">0</span>
-            </div>
-          </div>
         </div>
 
-        <!-- Findings List Section -->
-        <div class="space-y-4">
-          <div class="flex flex-wrap items-center justify-between gap-3">
-            <h2 class="text-base font-bold text-white flex items-center space-x-2">
-              <i data-lucide="list-checks" class="w-4 h-4 text-brand-400"></i>
-              <span>Categorized Findings</span>
-              <span id="findings-count-badge" class="text-xs font-semibold px-2 py-0.5 rounded-full bg-surface-700 text-slate-300">0</span>
-            </h2>
-
-            <!-- Severity Filter Pills -->
-            <div class="flex flex-wrap items-center gap-1 text-xs" id="findings-filter-bar">
-              <button onclick="filterFindings('all')" class="filter-pill active px-2.5 py-1 rounded-md bg-surface-700 text-white font-medium">All</button>
-              <button onclick="filterFindings('critical')" class="filter-pill px-2.5 py-1 rounded-md hover:bg-surface-700 text-rose-400">Critical</button>
-              <button onclick="filterFindings('security')" class="filter-pill px-2.5 py-1 rounded-md hover:bg-surface-700 text-amber-400">Security</button>
-              <button onclick="filterFindings('bug')" class="filter-pill px-2.5 py-1 rounded-md hover:bg-surface-700 text-cyan-400">Bugs</button>
-              <button onclick="filterFindings('performance')" class="filter-pill px-2.5 py-1 rounded-md hover:bg-surface-700 text-violet-400">Performance</button>
-            </div>
-          </div>
-
-          <!-- Cards List -->
-          <div id="findings-card-list" class="space-y-3">
-            <!-- Dynamically populated findings cards -->
-          </div>
-        </div>
-
-      </div>
-
-    </section>
-
-    <!-- ============================================================== -->
-    <!-- TAB 3: AUDIT HISTORY -->
-    <!-- ============================================================== -->
-    <section id="tab-history" class="hidden space-y-6">
-      <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-2 border-b border-surface-700/60">
-        <div>
-          <h1 class="text-xl font-bold text-white">Review Audit History</h1>
-          <p class="text-xs sm:text-sm text-slate-400">Persistent log of all pull request reviews and static analyses.</p>
-        </div>
-        <button onclick="loadReviewHistory()" class="self-start sm:self-auto text-xs px-3 py-1.5 rounded-lg bg-surface-700 hover:bg-surface-600 text-slate-200 border border-surface-600 flex items-center space-x-1.5 transition">
-          <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
-          <span>Refresh</span>
-        </button>
-      </div>
-
-      <!-- History Table Container -->
-      <div class="bg-surface-800 border border-surface-700/60 rounded-xl overflow-hidden shadow-sm">
-        <div class="overflow-x-auto">
-          <table class="w-full text-left text-sm text-slate-300">
-            <thead class="bg-surface-750 text-xs uppercase font-semibold text-slate-400 tracking-wider border-b border-surface-700">
-              <tr>
-                <th class="px-6 py-3.5">Target / PR</th>
-                <th class="px-6 py-3.5">Verdict</th>
-                <th class="px-6 py-3.5">Defects</th>
-                <th class="px-6 py-3.5">Duration</th>
-                <th class="px-6 py-3.5">Date</th>
-                <th class="px-6 py-3.5 text-right">Action</th>
-              </tr>
-            </thead>
-            <tbody id="history-table-body" class="divide-y divide-surface-700/60">
-              <!-- Populated via JS -->
-            </tbody>
-          </table>
-        </div>
-      </div>
-    </section>
-
-    <!-- ============================================================== -->
-    <!-- TAB 4: WEBHOOK SETUP GUIDE -->
-    <!-- ============================================================== -->
-    <section id="tab-webhooks" class="hidden space-y-6">
-      <div class="pb-2 border-b border-surface-700/60">
-        <h1 class="text-xl font-bold text-white">GitHub Webhook Integration</h1>
-        <p class="text-xs sm:text-sm text-slate-400">Configure your GitHub repositories to automatically trigger PR reviews on every pull request event.</p>
-      </div>
-
-      <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        
-        <!-- Setup Guide Steps (2 cols) -->
-        <div class="lg:col-span-2 bg-surface-800 border border-surface-700/60 rounded-xl p-6 shadow-sm space-y-6">
-          <h2 class="text-base font-bold text-white">Interactive Setup Walkthrough</h2>
-
-          <!-- Step 1: Payload URL -->
-          <div class="space-y-2">
-            <div class="flex items-center space-x-2">
-              <span class="w-5 h-5 rounded-full bg-brand-500 text-white flex items-center justify-center text-xs font-bold">1</span>
-              <h3 class="text-sm font-semibold text-slate-200">Set Payload URL in GitHub</h3>
-            </div>
-            <p class="text-xs text-slate-400 pl-7">Navigate to your repository -> <b>Settings</b> -> <b>Webhooks</b> -> <b>Add webhook</b>.</p>
-            <div class="pl-7">
-              <div class="flex items-center space-x-2 max-w-xl">
-                <input type="text" readonly id="webhook-url-input" class="w-full bg-surface-900 border border-surface-700 rounded-lg px-3 py-2 text-xs font-mono text-brand-300 selection:bg-brand-500">
-                <button onclick="copyToClipboard('webhook-url-input', 'url-copy-text')" class="px-3 py-2 bg-surface-700 hover:bg-surface-600 border border-surface-600 rounded-lg text-xs font-medium text-slate-200 shrink-0 transition flex items-center space-x-1">
-                  <i data-lucide="copy" class="w-3.5 h-3.5"></i>
-                  <span id="url-copy-text">Copy</span>
+        <!-- Input Terminal Frame -->
+        <div class="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden">
+          
+          <!-- Mode A: Diff Textarea -->
+          <div id="box-mode-diff" class="p-4 space-y-3">
+            <div class="flex items-center justify-between">
+              <span class="text-xs font-mono text-slate-400">DIFF_PAYLOAD</span>
+              
+              <!-- Clean Preset Selectors -->
+              <div class="flex items-center space-x-2 text-xs">
+                <span class="text-slate-400">Presets:</span>
+                <button onclick="loadSampleDiff('security')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-750 text-slate-300 border border-slate-700 font-mono text-[11px] transition">
+                  vulnerability-rce.diff
+                </button>
+                <button onclick="loadSampleDiff('bug')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-750 text-slate-300 border border-slate-700 font-mono text-[11px] transition">
+                  n-plus-one.diff
+                </button>
+                <button onclick="loadSampleDiff('clean')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-750 text-slate-300 border border-slate-700 font-mono text-[11px] transition">
+                  compliant-refactor.diff
                 </button>
               </div>
             </div>
+
+            <textarea id="console-diff-input" rows="8" placeholder="diff --git a/src/service.py b/src/service.py&#10;index 123..456 100644&#10;--- a/src/service.py&#10;+++ b/src/service.py&#10;@@ -1,3 +1,5 @@&#10;+import subprocess&#10;+subprocess.run(arg, shell=True)" class="w-full bg-slate-950 border border-slate-800 rounded p-3 font-mono text-xs text-slate-200 placeholder-slate-600 focus:outline-none focus:border-slate-600 leading-relaxed"></textarea>
           </div>
 
-          <!-- Step 2: Content Type -->
-          <div class="space-y-2">
-            <div class="flex items-center space-x-2">
-              <span class="w-5 h-5 rounded-full bg-brand-500 text-white flex items-center justify-center text-xs font-bold">2</span>
-              <h3 class="text-sm font-semibold text-slate-200">Select Content Type</h3>
-            </div>
-            <div class="pl-7">
-              <span class="inline-block px-2.5 py-1 rounded bg-amber-500/10 border border-amber-500/20 text-amber-300 text-xs font-mono font-semibold">
-                application/json
-              </span>
-              <p class="text-xs text-slate-400 mt-1">⚠️ Do not leave as form-urlencoded. Our engine expects JSON payloads.</p>
+          <!-- Mode B: GitHub PR URL -->
+          <div id="box-mode-pr" class="hidden p-4 space-y-3">
+            <label class="text-xs font-mono text-slate-400">PULL_REQUEST_URL</label>
+            <input type="text" id="console-pr-input" placeholder="https://github.com/owner/repository/pull/12" class="w-full bg-slate-950 border border-slate-800 rounded px-3 py-2 text-xs font-mono text-slate-200 focus:outline-none focus:border-slate-600">
+            <div class="flex items-center space-x-2 pt-1 text-xs text-slate-400">
+              <input type="checkbox" id="console-post-gh" class="rounded bg-slate-950 border-slate-750 text-accent focus:ring-0">
+              <label for="console-post-gh">Submit inspection review back to GitHub Pull Request (requires `GITHUB_TOKEN`)</label>
             </div>
           </div>
 
-          <!-- Step 3: Webhook Secret -->
-          <div class="space-y-2">
-            <div class="flex items-center space-x-2">
-              <span class="w-5 h-5 rounded-full bg-brand-500 text-white flex items-center justify-center text-xs font-bold">3</span>
-              <h3 class="text-sm font-semibold text-slate-200">Configure Webhook Secret (HMAC SHA-256)</h3>
+          <!-- Bottom Action Bar -->
+          <div class="px-4 py-3 bg-slate-850 border-t border-slate-800 flex items-center justify-between">
+            <div class="flex items-center space-x-2 text-xs text-slate-400">
+              <i data-lucide="shield" class="w-3.5 h-3.5 text-slate-400"></i>
+              <span>AST Syntax Validation & Secret Regex Active</span>
             </div>
-            <p class="text-xs text-slate-400 pl-7">GitHub uses this secret to sign the `X-Hub-Signature-256` header to ensure only authentic requests are executed.</p>
-            <div class="pl-7">
-              <div class="flex items-center space-x-2 max-w-xl">
-                <input type="password" readonly id="webhook-secret-input" value="7f8a9b2c3d4e5f60718293a4b5c6d7e8f90123456789abcd" class="w-full bg-surface-900 border border-surface-700 rounded-lg px-3 py-2 text-xs font-mono text-emerald-300">
-                <button onclick="toggleSecretVisibility()" class="p-2 bg-surface-700 hover:bg-surface-600 border border-surface-600 rounded-lg text-slate-300">
-                  <i data-lucide="eye" id="secret-eye-icon" class="w-3.5 h-3.5"></i>
-                </button>
-                <button onclick="copyToClipboard('webhook-secret-input', 'secret-copy-text')" class="px-3 py-2 bg-surface-700 hover:bg-surface-600 border border-surface-600 rounded-lg text-xs font-medium text-slate-200 shrink-0 transition flex items-center space-x-1">
-                  <i data-lucide="copy" class="w-3.5 h-3.5"></i>
-                  <span id="secret-copy-text">Copy</span>
-                </button>
+            <button id="btn-execute-analysis" onclick="runConsoleAnalysis()" class="px-4 py-1.5 rounded bg-white hover:bg-slate-100 text-slate-950 text-xs font-semibold transition disabled:opacity-50 flex items-center space-x-1.5">
+              <i data-lucide="play" class="w-3.5 h-3.5 fill-current"></i>
+              <span id="btn-execute-text">Run Inspection</span>
+            </button>
+          </div>
+        </div>
+
+        <!-- Inspection Result Output -->
+        <div id="console-output-container" class="hidden space-y-6">
+          
+          <!-- Summary Header Strip -->
+          <div id="console-verdict-banner" class="border rounded-lg p-5 transition">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
+              <div class="flex items-center space-x-3">
+                <span id="console-verdict-tag" class="px-2.5 py-0.5 rounded text-xs font-mono font-bold uppercase tracking-wider"></span>
+                <span id="console-duration-tag" class="text-xs font-mono text-slate-400"></span>
+              </div>
+              <button onclick="copyFormattedReport()" class="self-start sm:self-auto text-xs px-2.5 py-1 rounded bg-slate-800 hover:bg-slate-750 border border-slate-700 text-slate-300 font-medium transition flex items-center space-x-1">
+                <i data-lucide="copy" class="w-3 h-3"></i>
+                <span id="report-copy-text">Copy Markdown Report</span>
+              </button>
+            </div>
+
+            <p id="console-summary-text" class="text-xs text-slate-300 leading-relaxed font-sans"></p>
+
+            <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mt-4 pt-3 border-t border-slate-800/80 text-[11px] font-mono text-slate-400">
+              <div>Files Inspected: <span id="stat-files" class="text-slate-200 font-semibold">0</span></div>
+              <div>Static AST Findings: <span id="stat-static" class="text-slate-200 font-semibold">0</span></div>
+              <div>LLM / Rules Findings: <span id="stat-llm" class="text-slate-200 font-semibold">0</span></div>
+              <div>Tokens Allocated: <span id="stat-tokens" class="text-slate-200 font-semibold">0</span></div>
+            </div>
+          </div>
+
+          <!-- Findings Ledger Section -->
+          <div class="space-y-3">
+            <div class="flex items-center justify-between">
+              <div class="flex items-center space-x-2">
+                <span class="text-xs font-semibold text-slate-200">Defects & Actionable Items</span>
+                <span id="console-findings-badge" class="text-[11px] font-mono px-2 py-0.2 rounded-full bg-slate-800 text-slate-400">0</span>
+              </div>
+
+              <!-- Filter tabs -->
+              <div class="flex items-center space-x-1 text-[11px] font-mono" id="severity-filter-bar">
+                <button onclick="applySeverityFilter('all')" class="sev-filter active px-2 py-0.5 rounded bg-slate-800 text-slate-200">ALL</button>
+                <button onclick="applySeverityFilter('critical')" class="sev-filter px-2 py-0.5 rounded text-rose-400 hover:bg-slate-850">CRITICAL</button>
+                <button onclick="applySeverityFilter('error')" class="sev-filter px-2 py-0.5 rounded text-amber-400 hover:bg-slate-850">ERROR</button>
+                <button onclick="applySeverityFilter('warning')" class="sev-filter px-2 py-0.5 rounded text-yellow-400 hover:bg-slate-850">WARNING</button>
+                <button onclick="applySeverityFilter('info')" class="sev-filter px-2 py-0.5 rounded text-blue-400 hover:bg-slate-850">INFO</button>
               </div>
             </div>
-          </div>
 
-          <!-- Step 4: Event Triggers -->
-          <div class="space-y-2">
-            <div class="flex items-center space-x-2">
-              <span class="w-5 h-5 rounded-full bg-brand-500 text-white flex items-center justify-center text-xs font-bold">4</span>
-              <h3 class="text-sm font-semibold text-slate-200">Choose Event Triggers</h3>
-            </div>
-            <div class="pl-7 text-xs text-slate-300 space-y-1">
-              <p>Select: <b>"Let me select individual events"</b></p>
-              <p>Check: ☑️ <b>Pull requests</b> (Actions: <code>opened</code>, <code>synchronize</code>, <code>reopened</code>)</p>
+            <!-- Findings Card Deck -->
+            <div id="console-findings-deck" class="space-y-3">
+              <!-- Dynamically populated finding cards -->
             </div>
           </div>
 
         </div>
 
-        <!-- Webhook Status & Diagnostics (1 col) -->
-        <div class="bg-surface-800 border border-surface-700/60 rounded-xl p-6 shadow-sm space-y-5">
-          <h2 class="text-base font-bold text-white flex items-center space-x-2">
-            <i data-lucide="activity" class="w-4 h-4 text-emerald-400"></i>
-            <span>Webhook Status</span>
-          </h2>
+      </section>
 
-          <div class="p-4 rounded-xl bg-surface-750/70 border border-surface-700 space-y-3">
-            <div class="flex items-center justify-between text-xs">
-              <span class="text-slate-400">Endpoint Status:</span>
-              <span class="px-2 py-0.5 rounded bg-emerald-500/10 text-emerald-400 font-semibold border border-emerald-500/20">Listening</span>
-            </div>
-            <div class="flex items-center justify-between text-xs">
-              <span class="text-slate-400">HMAC Verification:</span>
-              <span class="px-2 py-0.5 rounded bg-indigo-500/10 text-indigo-400 font-semibold border border-indigo-500/20">Enforced</span>
-            </div>
-            <div class="flex items-center justify-between text-xs">
-              <span class="text-slate-400">Auto-Post to GitHub:</span>
-              <span id="auto-post-badge" class="font-mono text-slate-300">Disabled</span>
-            </div>
+      <!-- ============================================================== -->
+      <!-- VIEW 3: AUDIT TRAIL -->
+      <!-- ============================================================== -->
+      <section id="view-audit" class="hidden space-y-4">
+        
+        <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 pb-4 border-b border-slate-800/80">
+          <div>
+            <h1 class="text-base font-semibold text-white tracking-tight">Compliance & Inspection Audit Trail</h1>
+            <p class="text-xs text-slate-400 mt-0.5">Immutable record of all static and automated inspection runs stored in SQLite.</p>
           </div>
+          <button onclick="loadAuditHistory()" class="px-2.5 py-1 rounded bg-slate-850 hover:bg-slate-800 border border-slate-800 text-slate-300 text-xs font-medium transition flex items-center space-x-1.5">
+            <i data-lucide="refresh-cw" class="w-3.5 h-3.5"></i>
+            <span>Refresh Ledger</span>
+          </button>
+        </div>
 
-          <div class="text-xs text-slate-400 space-y-2">
-            <p class="font-semibold text-slate-300">Testing Delivery:</p>
-            <p>GitHub automatically sends a <code>ping</code> event when you create the webhook. Check the <b>"Recent Deliveries"</b> section in GitHub to confirm the <code>200 OK</code> response.</p>
+        <div class="bg-slate-900 border border-slate-800 rounded-lg overflow-hidden">
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs text-slate-300">
+              <thead class="bg-slate-850 text-slate-400 font-mono text-[11px] uppercase tracking-wider border-b border-slate-800">
+                <tr>
+                  <th class="px-4 py-3">Inspection Target</th>
+                  <th class="px-4 py-3">Gate Verdict</th>
+                  <th class="px-4 py-3">Defects</th>
+                  <th class="px-4 py-3">Latency</th>
+                  <th class="px-4 py-3">Timestamp</th>
+                  <th class="px-4 py-3 text-right">Details</th>
+                </tr>
+              </thead>
+              <tbody id="audit-table-body" class="divide-y divide-slate-800/60 font-mono">
+                <!-- Populated via JS -->
+              </tbody>
+            </table>
           </div>
         </div>
 
-      </div>
-    </section>
+      </section>
 
+      <!-- ============================================================== -->
+      <!-- VIEW 4: WEBHOOKS & SECURITY -->
+      <!-- ============================================================== -->
+      <section id="view-webhooks" class="hidden space-y-6">
+        
+        <div class="pb-4 border-b border-slate-800/80">
+          <h1 class="text-base font-semibold text-white tracking-tight">Webhook Configuration & Ingestion Gate</h1>
+          <p class="text-xs text-slate-400 mt-0.5">Ingest GitHub pull request lifecycle events securely using HMAC-SHA256 signatures.</p>
+        </div>
+
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+          
+          <!-- Instructions Panel (2 cols) -->
+          <div class="lg:col-span-2 bg-slate-900 border border-slate-800 rounded-lg p-5 space-y-5">
+            <span class="text-xs font-semibold text-slate-200">GitHub Repository Configuration Checklist</span>
+
+            <div class="space-y-4 text-xs">
+              
+              <!-- Step 1 -->
+              <div class="space-y-1.5">
+                <div class="flex items-center space-x-2">
+                  <span class="w-4 h-4 rounded bg-slate-800 text-slate-300 font-mono text-[10px] flex items-center justify-center font-bold">1</span>
+                  <span class="font-medium text-slate-200">Payload URL</span>
+                </div>
+                <p class="text-slate-400 pl-6 text-[11px]">Set in GitHub Repository &rarr; Settings &rarr; Webhooks &rarr; Add Webhook:</p>
+                <div class="pl-6 flex items-center space-x-2 max-w-lg">
+                  <input type="text" readonly id="webhook-target-url" class="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 font-mono text-xs text-slate-200">
+                  <button onclick="copyToClipboard('webhook-target-url', 'copy-btn-url')" class="px-2.5 py-1.5 bg-slate-850 hover:bg-slate-800 border border-slate-800 rounded text-slate-300 text-xs font-mono shrink-0 transition">
+                    <span id="copy-btn-url">COPY</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Step 2 -->
+              <div class="space-y-1.5">
+                <div class="flex items-center space-x-2">
+                  <span class="w-4 h-4 rounded bg-slate-800 text-slate-300 font-mono text-[10px] flex items-center justify-center font-bold">2</span>
+                  <span class="font-medium text-slate-200">Content Type</span>
+                </div>
+                <div class="pl-6">
+                  <code class="px-2 py-0.5 rounded bg-slate-850 border border-slate-800 text-slate-200 font-mono text-[11px]">application/json</code>
+                  <p class="text-[11px] text-slate-400 mt-1">Must be JSON; form-urlencoded payloads are rejected.</p>
+                </div>
+              </div>
+
+              <!-- Step 3 -->
+              <div class="space-y-1.5">
+                <div class="flex items-center space-x-2">
+                  <span class="w-4 h-4 rounded bg-slate-800 text-slate-300 font-mono text-[10px] flex items-center justify-center font-bold">3</span>
+                  <span class="font-medium text-slate-200">Secret (HMAC-SHA256 Token)</span>
+                </div>
+                <p class="text-slate-400 pl-6 text-[11px]">Matches `GITHUB_WEBHOOK_SECRET` in your `.env` configuration:</p>
+                <div class="pl-6 flex items-center space-x-2 max-w-lg">
+                  <input type="password" readonly id="webhook-secret-view" value="7f8a9b2c3d4e5f60718293a4b5c6d7e8f90123456789abcd" class="w-full bg-slate-950 border border-slate-800 rounded px-2.5 py-1.5 font-mono text-xs text-emerald-400">
+                  <button onclick="toggleSecret()" class="p-1.5 bg-slate-850 hover:bg-slate-800 border border-slate-800 rounded text-slate-400 hover:text-slate-200">
+                    <i data-lucide="eye" id="eye-icon" class="w-3.5 h-3.5"></i>
+                  </button>
+                  <button onclick="copyToClipboard('webhook-secret-view', 'copy-btn-secret')" class="px-2.5 py-1.5 bg-slate-850 hover:bg-slate-800 border border-slate-800 rounded text-slate-300 text-xs font-mono shrink-0 transition">
+                    <span id="copy-btn-secret">COPY</span>
+                  </button>
+                </div>
+              </div>
+
+              <!-- Step 4 -->
+              <div class="space-y-1.5">
+                <div class="flex items-center space-x-2">
+                  <span class="w-4 h-4 rounded bg-slate-800 text-slate-300 font-mono text-[10px] flex items-center justify-center font-bold">4</span>
+                  <span class="font-medium text-slate-200">Subscribed Events</span>
+                </div>
+                <div class="pl-6 text-[11px] text-slate-300 space-y-0.5">
+                  <p>Choose: <b>"Let me select individual events"</b></p>
+                  <p>Check: <b>Pull requests</b> (Actions: <code>opened</code>, <code>synchronize</code>, <code>reopened</code>)</p>
+                </div>
+              </div>
+
+            </div>
+          </div>
+
+          <!-- Diagnostics Status Card (1 col) -->
+          <div class="bg-slate-900 border border-slate-800 rounded-lg p-5 space-y-4">
+            <span class="text-xs font-semibold text-slate-200">Security Ingestion Parameters</span>
+
+            <div class="space-y-2.5 font-mono text-xs">
+              <div class="flex items-center justify-between p-2 rounded bg-slate-850 border border-slate-800">
+                <span class="text-slate-400 text-[11px]">SIGNATURE_CHECK</span>
+                <span class="text-emerald-400 text-[11px] font-semibold">HMAC-SHA256</span>
+              </div>
+              <div class="flex items-center justify-between p-2 rounded bg-slate-850 border border-slate-800">
+                <span class="text-slate-400 text-[11px]">ENDPOINT_STATUS</span>
+                <span class="text-emerald-400 text-[11px] font-semibold">200 LISTENING</span>
+              </div>
+              <div class="flex items-center justify-between p-2 rounded bg-slate-850 border border-slate-800">
+                <span class="text-slate-400 text-[11px]">SECURITY_ACTION</span>
+                <span class="text-slate-200 text-[11px]">BLOCK_ON_401</span>
+              </div>
+            </div>
+
+            <div class="pt-2 border-t border-slate-800 text-[11px] text-slate-400 leading-relaxed">
+              Inbound payloads without a valid matching cryptographic header are dropped at the gate before AST parsing or LLM token allocation occurs.
+            </div>
+          </div>
+
+        </div>
+
+      </section>
+
+    </div>
   </main>
 
-  <!-- Findings Detail Modal / Drawer -->
-  <div id="modal-backdrop" class="fixed inset-0 bg-black/70 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
-    <div class="bg-surface-800 border border-surface-700 rounded-2xl max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
-      <div class="p-5 border-b border-surface-700 flex items-center justify-between">
-        <h3 id="modal-title" class="font-bold text-white text-base">Review Details</h3>
-        <button onclick="closeModal()" class="p-1.5 rounded-lg text-slate-400 hover:text-white hover:bg-surface-700 transition">
-          <i data-lucide="x" class="w-5 h-5"></i>
+  <!-- Inspection Modal Drawer -->
+  <div id="audit-modal-backdrop" class="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 hidden flex items-center justify-center p-4">
+    <div class="bg-slate-900 border border-slate-800 rounded-lg max-w-2xl w-full max-h-[85vh] flex flex-col shadow-2xl overflow-hidden">
+      <div class="px-5 py-3.5 border-b border-slate-800 flex items-center justify-between">
+        <h3 id="audit-modal-title" class="font-semibold text-white text-xs font-mono">INSPECTION_RECORD</h3>
+        <button onclick="closeAuditModal()" class="text-slate-400 hover:text-white p-1">
+          <i data-lucide="x" class="w-4 h-4"></i>
         </button>
       </div>
-      <div id="modal-body" class="p-6 overflow-y-auto space-y-4 text-sm">
-        <!-- Modal content loaded via JS -->
+      <div id="audit-modal-body" class="p-5 overflow-y-auto space-y-4 text-xs font-mono">
+        <!-- Loaded via JS -->
       </div>
-      <div class="p-4 border-t border-surface-700 bg-surface-750 flex justify-end">
-        <button onclick="closeModal()" class="px-4 py-2 rounded-xl bg-surface-700 hover:bg-surface-600 text-slate-200 text-xs font-semibold">Close</button>
+      <div class="px-5 py-3 border-t border-slate-800 bg-slate-850 flex justify-end">
+        <button onclick="closeAuditModal()" class="px-3 py-1 rounded bg-slate-800 hover:bg-slate-750 text-slate-200 text-xs font-medium">Close</button>
       </div>
     </div>
   </div>
 
-  <!-- Footer -->
-  <footer class="border-t border-surface-700/60 bg-surface-800/40 py-6 mt-auto">
-    <div class="max-w-7xl mx-auto px-4 text-center text-xs text-slate-500 space-y-1">
-      <p>PRPulse — Automated Pull Request Code Quality & Security Platform</p>
-      <p>Powered by FastAPI, Pydantic v2, Ruff & Google Gemini / Mock Engine</p>
+  <!-- Minimalist Enterprise Footer -->
+  <footer class="border-t border-slate-800 bg-slate-900/60 py-3 shrink-0">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 flex flex-col sm:flex-row items-center justify-between text-[11px] text-slate-400 font-mono">
+      <span>PRPulse &middot; Automated Code Quality & Compliance Platform</span>
+      <span class="mt-1 sm:mt-0 text-slate-400">FastAPI &middot; Pydantic v2 &middot; SQLAlchemy &middot; Ruff</span>
     </div>
   </footer>
 
-  <!-- Application Logic JS -->
+  <!-- Application Logic -->
   <script>
-    // Initialize Lucide icons
     lucide.createIcons();
 
-    // Set Webhook payload URL based on actual domain
-    document.getElementById('webhook-url-input').value = window.location.origin + '/webhooks/github';
+    // Set Webhook target dynamically
+    document.getElementById('webhook-target-url').value = window.location.origin + '/webhooks/github';
 
-    // Global State
-    let currentFindings = [];
-    let currentMarkdown = "";
+    // Global Store
+    let inspectionFindings = [];
 
-    // Sample Diffs
-    const SAMPLE_DIFFS = {
-      security: `diff --git a/app/auth.py b/app/auth.py
+    // Realistic Code Presets (Dev-focused)
+    const PRESETS = {
+      security: `diff --git a/services/auth_service.py b/services/auth_service.py
 new file mode 100644
-index 0000000..abcdef1
+index 0000000..f9812a4
 --- /dev/null
-+++ b/app/auth.py
-@@ -0,0 +1,8 @@
++++ b/services/auth_service.py
+@@ -0,0 +1,9 @@
 +import subprocess
 +
-+AWS_ACCESS_KEY = "AKIAIOSFODNN7EXAMPLE"
++AWS_ACCESS_KEY_ID = "AKIAIOSFODNN7EXAMPLE"
 +
-+def run_backup_command(user_dir):
-+    # Arbitrary command injection risk
-+    subprocess.run("tar -czf backup.tar.gz " + user_dir, shell=True)
-+    eval("print('Backup completed')")
-`,
-      bug: `diff --git a/app/users.py b/app/users.py
++def execute_user_script(payload_path: str):
++    # Command Injection Risk: Unsanitized shell execution
++    subprocess.run("sh " + payload_path, shell=True)
++    eval("compile_binary()")
++`,
+      bug: `diff --git a/repositories/user_repo.py b/repositories/user_repo.py
 new file mode 100644
-index 0000000..1234567
+index 0000000..c78a011
 --- /dev/null
-+++ b/app/users.py
-@@ -0,0 +1,11 @@
++++ b/repositories/user_repo.py
+@@ -0,0 +1,10 @@
 +import httpx
 +
-+def fetch_external_records(user_ids, session):
-+    results = []
++def load_user_metrics(user_ids: list, db_session):
++    records = []
 +    for uid in user_ids:
-+        # N+1 query issue inside loop
-+        user = session.query(User).filter_by(id=uid).first()
-+        # Network call without explicit timeout
-+        resp = httpx.get(f"https://api.partner.com/user/{uid}")
-+        results.append(resp.json())
-+    return results
++        # Performance Anti-Pattern: N+1 query inside loop
++        row = db_session.query(User).filter_by(id=uid).first()
++        # Reliability Risk: Missing network timeout
++        r = httpx.get(f"https://metrics.internal/users/{uid}")
++        records.append(r.json())
++    return records
 `,
-      clean: `diff --git a/app/calculator.py b/app/calculator.py
+      clean: `diff --git a/utils/math_metrics.py b/utils/math_metrics.py
 new file mode 100644
-index 0000000..89abcdef
+index 0000000..e12b790
 --- /dev/null
-+++ b/app/calculator.py
++++ b/utils/math_metrics.py
 @@ -0,0 +1,6 @@
-+from typing import List
++from typing import Sequence
 +
-+def calculate_moving_average(values: List[float], window_size: int) -> List[float]:
-+    if window_size <= 0:
++def compute_moving_window(values: Sequence[float], size: int) -> list[float]:
++    if size <= 0:
 +        raise ValueError("Window size must be greater than zero")
-+    return [sum(values[i:i + window_size]) / window_size for i in range(len(values) - window_size + 1)]
++    return [sum(values[i:i + size]) / size for i in range(len(values) - size + 1)]
 `
     };
 
-    // Navigation Tab Switching
-    function switchTab(tabName) {
-      const tabs = ['dashboard', 'studio', 'history', 'webhooks'];
-      tabs.forEach(t => {
-        document.getElementById(`tab-${t}`).classList.add('hidden');
-        const navBtn = document.getElementById(`nav-${t}`);
-        if (navBtn) {
-          navBtn.classList.remove('bg-surface-700', 'text-white');
-          navBtn.classList.add('text-slate-300');
-        }
+    // View Navigation
+    function switchView(viewName) {
+      ['overview', 'console', 'audit', 'webhooks'].forEach(v => {
+        document.getElementById(`view-${v}`).classList.add('hidden');
+        const btn = document.getElementById(`nav-${v}`);
+        if (btn) btn.classList.remove('tab-active');
       });
 
-      document.getElementById(`tab-${tabName}`).classList.remove('hidden');
-      const activeNav = document.getElementById(`nav-${tabName}`);
-      if (activeNav) {
-        activeNav.classList.add('bg-surface-700', 'text-white');
-        activeNav.classList.remove('text-slate-300');
-      }
+      document.getElementById(`view-${viewName}`).classList.remove('hidden');
+      const activeBtn = document.getElementById(`nav-${viewName}`);
+      if (activeBtn) activeBtn.classList.add('tab-active');
 
-      if (tabName === 'dashboard') loadDashboardStats();
-      if (tabName === 'history') loadReviewHistory();
+      if (viewName === 'overview') loadTelemetry();
+      if (viewName === 'audit') loadAuditHistory();
     }
 
-    // Studio Input Mode Toggle
-    function setStudioMode(mode) {
+    // Console Input Switcher
+    function setConsoleMode(mode) {
       if (mode === 'diff') {
-        document.getElementById('studio-mode-diff-box').classList.remove('hidden');
-        document.getElementById('studio-mode-pr-box').classList.add('hidden');
-        document.getElementById('btn-mode-diff').className = "px-3.5 py-1.5 rounded-lg text-xs font-semibold text-white bg-brand-600 transition";
-        document.getElementById('btn-mode-pr').className = "px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition";
+        document.getElementById('box-mode-diff').classList.remove('hidden');
+        document.getElementById('box-mode-pr').classList.add('hidden');
+        document.getElementById('mode-btn-diff').className = "px-3 py-1 font-medium rounded text-white bg-slate-800";
+        document.getElementById('mode-btn-pr').className = "px-3 py-1 font-medium rounded text-slate-400 hover:text-white";
       } else {
-        document.getElementById('studio-mode-diff-box').classList.add('hidden');
-        document.getElementById('studio-mode-pr-box').classList.remove('hidden');
-        document.getElementById('btn-mode-pr').className = "px-3.5 py-1.5 rounded-lg text-xs font-semibold text-white bg-brand-600 transition";
-        document.getElementById('btn-mode-diff').className = "px-3.5 py-1.5 rounded-lg text-xs font-semibold text-slate-400 hover:text-white transition";
+        document.getElementById('box-mode-diff').classList.add('hidden');
+        document.getElementById('box-mode-pr').classList.remove('hidden');
+        document.getElementById('mode-btn-pr').className = "px-3 py-1 font-medium rounded text-white bg-slate-800";
+        document.getElementById('mode-btn-diff').className = "px-3 py-1 font-medium rounded text-slate-400 hover:text-white";
       }
     }
 
-    function loadSampleDiff(type) {
-      document.getElementById('input-diff-text').value = SAMPLE_DIFFS[type] || '';
+    function loadSampleDiff(key) {
+      document.getElementById('console-diff-input').value = PRESETS[key] || '';
     }
 
-    // Execute Review (Diff or PR)
-    async function executeReview() {
-      const isDiff = !document.getElementById('studio-mode-diff-box').classList.contains('hidden');
-      const btn = document.getElementById('btn-run-analysis');
-      const btnText = document.getElementById('btn-run-text');
+    // Run Analysis
+    async function runConsoleAnalysis() {
+      const isDiff = !document.getElementById('box-mode-diff').classList.contains('hidden');
+      const btn = document.getElementById('btn-execute-analysis');
+      const btnText = document.getElementById('btn-execute-text');
 
       btn.disabled = true;
-      btnText.textContent = "Analyzing Pipeline...";
+      btnText.textContent = "Executing Static & Rule Passes...";
 
       try {
         let endpoint = "";
-        let payload = {};
+        let body = {};
 
         if (isDiff) {
-          const diffText = document.getElementById('input-diff-text').value.trim();
-          if (!diffText) {
-            alert("Please paste a unified git diff or click one of the preset sample buttons.");
-            btn.disabled = false;
-            btnText.textContent = "Run Deep Inspection";
+          const text = document.getElementById('console-diff-input').value.trim();
+          if (!text) {
+            alert("Please provide a unified diff or click one of the presets.");
             return;
           }
           endpoint = "/review/diff";
-          payload = { title: "Studio Manual Review", diff_text: diffText };
+          body = { title: "Console Direct Inspection", diff_text: text };
         } else {
-          const prUrl = document.getElementById('input-pr-url').value.trim();
-          const postToGh = document.getElementById('input-post-github').checked;
+          const prUrl = document.getElementById('console-pr-input').value.trim();
+          const postToGh = document.getElementById('console-post-gh').checked;
           if (!prUrl) {
-            alert("Please enter a valid GitHub Pull Request URL.");
-            btn.disabled = false;
-            btnText.textContent = "Run Deep Inspection";
+            alert("Please provide a valid GitHub Pull Request URL.");
             return;
           }
           endpoint = "/review/pr";
-          payload = { pr_url: prUrl, post_to_github: postToGh };
+          body = { pr_url: prUrl, post_to_github: postToGh };
         }
 
         const res = await fetch(endpoint, {
           method: "POST",
           headers: { "Content-Type": "application/json" },
-          body: JSON.stringify(payload)
+          body: JSON.stringify(body)
         });
 
         if (!res.ok) {
-          const errData = await res.json();
-          throw new Error(errData.detail || "Inspection failed");
+          const err = await res.json();
+          throw new Error(err.detail || "Inspection rejected");
         }
 
-        const data = await res.json();
-        renderInspectionResult(data);
+        const result = await res.json();
+        renderConsoleResults(result);
 
-      } catch (err) {
-        alert("Review failed: " + err.message);
+      } catch (e) {
+        alert("Inspection failure: " + e.message);
       } finally {
         btn.disabled = false;
-        btnText.textContent = "Run Deep Inspection";
+        btnText.textContent = "Run Inspection";
       }
     }
 
-    // Render Review Results
-    function renderInspectionResult(data) {
-      document.getElementById('studio-result-container').classList.remove('hidden');
+    // Render Output in Console
+    function renderConsoleResults(data) {
+      document.getElementById('console-output-container').classList.remove('hidden');
 
-      // Verdict Styling
+      const banner = document.getElementById('console-verdict-banner');
+      const tag = document.getElementById('console-verdict-tag');
       const verdict = data.verdict;
-      const banner = document.getElementById('result-banner');
-      const badge = document.getElementById('result-verdict-badge');
 
       if (verdict === 'approve') {
-        banner.className = "rounded-xl border border-emerald-500/30 bg-emerald-950/20 p-6";
-        badge.className = "px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-emerald-500/20 text-emerald-300 border border-emerald-500/40";
-        badge.innerHTML = `<i data-lucide="check-circle-2" class="w-3.5 h-3.5 mr-1 inline"></i> APPROVE`;
+        banner.className = "border border-emerald-800/60 bg-emerald-950/20 rounded-lg p-5";
+        tag.className = "px-2.5 py-0.5 rounded text-xs font-mono font-bold uppercase tracking-wider bg-emerald-900/40 text-emerald-300 border border-emerald-700/50";
+        tag.textContent = "VERDICT: APPROVE";
       } else if (verdict === 'request_changes') {
-        banner.className = "rounded-xl border border-rose-500/30 bg-rose-950/20 p-6";
-        badge.className = "px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-rose-500/20 text-rose-300 border border-rose-500/40";
-        badge.innerHTML = `<i data-lucide="alert-octagon" class="w-3.5 h-3.5 mr-1 inline"></i> REQUEST CHANGES`;
+        banner.className = "border border-rose-800/60 bg-rose-950/20 rounded-lg p-5";
+        tag.className = "px-2.5 py-0.5 rounded text-xs font-mono font-bold uppercase tracking-wider bg-rose-900/40 text-rose-300 border border-rose-700/50";
+        tag.textContent = "VERDICT: REQUEST_CHANGES";
       } else {
-        banner.className = "rounded-xl border border-amber-500/30 bg-amber-950/20 p-6";
-        badge.className = "px-3 py-1 rounded-full text-xs font-bold uppercase tracking-wider bg-amber-500/20 text-amber-300 border border-amber-500/40";
-        badge.innerHTML = `<i data-lucide="info" class="w-3.5 h-3.5 mr-1 inline"></i> COMMENT`;
+        banner.className = "border border-amber-800/60 bg-amber-950/20 rounded-lg p-5";
+        tag.className = "px-2.5 py-0.5 rounded text-xs font-mono font-bold uppercase tracking-wider bg-amber-900/40 text-amber-300 border border-amber-700/50";
+        tag.textContent = "VERDICT: COMMENT";
       }
 
-      document.getElementById('result-time-badge').textContent = `Duration: ${data.metrics.duration_ms}ms`;
-      document.getElementById('result-summary-text').textContent = data.summary;
+      document.getElementById('console-duration-tag').textContent = `LATENCY: ${data.metrics.duration_ms}ms`;
+      document.getElementById('console-summary-text').textContent = data.summary;
 
-      document.getElementById('meta-files').textContent = data.metrics.analyzed_files;
-      document.getElementById('meta-static').textContent = data.metrics.static_findings_count;
-      document.getElementById('meta-llm').textContent = data.metrics.llm_findings_count;
-      document.getElementById('meta-tokens').textContent = data.metrics.tokens_used;
+      document.getElementById('stat-files').textContent = data.metrics.analyzed_files;
+      document.getElementById('stat-static').textContent = data.metrics.static_findings_count;
+      document.getElementById('stat-llm').textContent = data.metrics.llm_findings_count;
+      document.getElementById('stat-tokens').textContent = data.metrics.tokens_used;
 
-      currentFindings = data.findings || [];
-      document.getElementById('findings-count-badge').textContent = currentFindings.length;
+      inspectionFindings = data.findings || [];
+      document.getElementById('console-findings-badge').textContent = inspectionFindings.length;
 
-      renderFindingsList(currentFindings);
+      renderFindingsDeck(inspectionFindings);
       lucide.createIcons();
 
-      // Scroll smoothly to results
-      document.getElementById('studio-result-container').scrollIntoView({ behavior: 'smooth' });
+      document.getElementById('console-output-container').scrollIntoView({ behavior: 'smooth' });
     }
 
-    function renderFindingsList(findings) {
-      const container = document.getElementById('findings-card-list');
+    function renderFindingsDeck(findings) {
+      const container = document.getElementById('console-findings-deck');
       container.innerHTML = "";
 
       if (findings.length === 0) {
         container.innerHTML = `
-          <div class="text-center py-8 rounded-xl bg-surface-800 border border-surface-700/60 text-slate-400">
-            <i data-lucide="check-check" class="w-8 h-8 text-emerald-400 mx-auto mb-2"></i>
-            <p class="font-semibold text-slate-200">Zero defects found</p>
-            <p class="text-xs text-slate-500">The diff adheres cleanly to security and code-quality standards.</p>
+          <div class="py-6 px-4 rounded bg-slate-900 border border-slate-800 text-center font-mono text-xs text-slate-400">
+            PASSED &middot; No security flaws or policy regressions detected in diff.
           </div>
         `;
         return;
       }
 
-      findings.forEach((f, idx) => {
+      findings.forEach((f, i) => {
         const card = document.createElement('div');
-        card.className = "rounded-xl bg-surface-800 border border-surface-700 p-4 space-y-3";
+        card.className = "rounded-lg bg-slate-900 border border-slate-800 p-4 space-y-2.5";
 
         const sevColors = {
-          critical: "text-rose-400 bg-rose-500/10 border-rose-500/30",
-          error: "text-amber-400 bg-amber-500/10 border-amber-500/30",
-          warning: "text-yellow-400 bg-yellow-500/10 border-yellow-500/30",
-          info: "text-blue-400 bg-blue-500/10 border-blue-500/30",
+          critical: "text-rose-400 bg-rose-950/50 border-rose-800/50",
+          error: "text-amber-400 bg-amber-950/50 border-amber-800/50",
+          warning: "text-yellow-400 bg-yellow-950/50 border-yellow-800/50",
+          info: "text-blue-400 bg-blue-950/50 border-blue-800/50",
         };
-
-        const badgeClass = sevColors[f.severity] || sevColors.info;
+        const badgeStyle = sevColors[f.severity] || sevColors.info;
 
         card.innerHTML = `
-          <div class="flex flex-wrap items-center justify-between gap-2">
+          <div class="flex flex-wrap items-center justify-between gap-2 text-xs font-mono">
             <div class="flex items-center space-x-2">
-              <span class="px-2 py-0.5 rounded text-[11px] font-bold uppercase border ${badgeClass}">${f.severity}</span>
-              <span class="px-2 py-0.5 rounded text-[11px] font-medium bg-surface-700 text-slate-300">${f.category}</span>
-              <span class="text-xs text-slate-500 uppercase tracking-wider font-mono">(${f.source})</span>
+              <span class="px-2 py-0.5 rounded text-[10px] font-bold uppercase border ${badgeStyle}">${f.severity}</span>
+              <span class="text-slate-400 uppercase text-[11px]">${f.category}</span>
+              <span class="text-slate-400 text-[10px]">(${f.source})</span>
             </div>
-            <div class="text-xs font-mono text-slate-400 flex items-center space-x-1">
-              <i data-lucide="file-code" class="w-3.5 h-3.5 text-brand-400"></i>
-              <span class="text-brand-300 font-semibold">${f.file}</span>
-              ${f.line_hint ? `<span class="text-slate-500">:L${f.line_hint}</span>` : ''}
+            <div class="text-slate-300">
+              <span>${f.file}</span>${f.line_hint ? `<span class="text-slate-400">:${f.line_hint}</span>` : ''}
             </div>
           </div>
 
-          <p class="text-sm text-slate-200 font-medium">${f.issue}</p>
+          <p class="text-xs text-slate-200 font-sans leading-relaxed">${f.issue}</p>
 
-          <div class="rounded-lg bg-surface-900 border border-surface-700/60 p-3 relative group">
-            <div class="flex items-center justify-between text-[11px] text-slate-400 mb-1.5">
-              <span class="font-semibold uppercase tracking-wider">Suggested Fix:</span>
-              <button onclick="navigator.clipboard.writeText('${escapeJsString(f.suggested_fix)}'); alert('Fix copied to clipboard!');" class="text-brand-400 hover:text-brand-300 font-mono flex items-center space-x-1">
-                <i data-lucide="copy" class="w-3 h-3"></i>
-                <span>Copy Fix</span>
+          <div class="p-3 rounded bg-slate-950 border border-slate-800/80 font-mono text-xs">
+            <div class="flex items-center justify-between text-[11px] text-slate-400 mb-1 border-b border-slate-850 pb-1">
+              <span>REMEDIATION</span>
+              <button onclick="navigator.clipboard.writeText('${escapeJsString(f.suggested_fix)}'); this.textContent = 'COPIED'; setTimeout(() => this.textContent = 'COPY', 1500);" class="text-slate-400 hover:text-slate-200">
+                COPY
               </button>
             </div>
-            <pre class="font-mono text-xs text-emerald-300 overflow-x-auto whitespace-pre-wrap">${f.suggested_fix}</pre>
+            <pre class="text-emerald-400 overflow-x-auto whitespace-pre-wrap">${f.suggested_fix}</pre>
           </div>
         `;
         container.appendChild(card);
@@ -892,37 +775,35 @@ index 0000000..89abcdef
       return (str || '').replace(/\\/g, '\\\\').replace(/'/g, "\\'").replace(/"/g, '\\"').replace(/\n/g, '\\n');
     }
 
-    // Filter Findings
-    function filterFindings(type) {
-      document.querySelectorAll('.filter-pill').forEach(b => b.classList.remove('bg-surface-700', 'text-white'));
-      event.target.classList.add('bg-surface-700', 'text-white');
+    function applySeverityFilter(type) {
+      document.querySelectorAll('.sev-filter').forEach(b => b.classList.remove('bg-slate-800', 'text-slate-200'));
+      event.target.classList.add('bg-slate-800', 'text-slate-200');
 
       if (type === 'all') {
-        renderFindingsList(currentFindings);
+        renderFindingsDeck(inspectionFindings);
       } else {
-        const filtered = currentFindings.filter(f => f.severity === type || f.category === type);
-        renderFindingsList(filtered);
+        const filtered = inspectionFindings.filter(f => f.severity === type);
+        renderFindingsDeck(filtered);
       }
       lucide.createIcons();
     }
 
-    // Copy Review Markdown
-    function copyReviewMarkdown() {
-      let md = `## 🤖 Automated PR Review Findings\n\n`;
-      currentFindings.forEach((f, idx) => {
-        md += `### ${idx + 1}. [${f.severity.toUpperCase()}] \`${f.file}\` (Line ${f.line_hint || 'N/A'})\n`;
-        md += `- **Category:** \`${f.category}\` (${f.source})\n`;
-        md += `- **Issue:** ${f.issue}\n`;
-        md += `- **Suggested Fix:**\n\`\`\`\n${f.suggested_fix}\n\`\`\`\n\n`;
+    function copyFormattedReport() {
+      let md = `## 📋 PRPulse Quality & Security Inspection Report\n\n`;
+      inspectionFindings.forEach((f, i) => {
+        md += `### ${i + 1}. [${f.severity.toUpperCase()}] \`${f.file}\`${f.line_hint ? ' (L' + f.line_hint + ')' : ''}\n`;
+        md += `- **Domain:** \`${f.category}\` (${f.source})\n`;
+        md += `- **Defect:** ${f.issue}\n`;
+        md += `- **Fix:**\n\`\`\`\n${f.suggested_fix}\n\`\`\`\n\n`;
       });
       navigator.clipboard.writeText(md);
-      const btn = document.getElementById('copy-btn-text');
-      btn.textContent = "Copied to Clipboard!";
-      setTimeout(() => btn.textContent = "Copy PR Markdown Comment", 2000);
+      const btn = document.getElementById('report-copy-text');
+      btn.textContent = "COPIED TO CLIPBOARD";
+      setTimeout(() => btn.textContent = "Copy Markdown Report", 2000);
     }
 
-    // Load Dashboard Stats
-    async function loadDashboardStats() {
+    // Telemetry & Overview Loading
+    async function loadTelemetry() {
       try {
         const [healthRes, reviewsRes] = await Promise.all([
           fetch('/health'),
@@ -931,177 +812,168 @@ index 0000000..89abcdef
 
         if (healthRes.ok) {
           const h = await healthRes.json();
-          document.getElementById('active-provider-badge').textContent = h.llm_provider.toUpperCase();
+          document.getElementById('header-engine-mode').textContent = h.llm_provider.toUpperCase();
         }
 
         if (reviewsRes.ok) {
-          const reviews = await reviewsRes.json();
-          document.getElementById('stat-total-reviews').textContent = reviews.length;
-          
-          let totalFindings = 0;
-          let criticalFindings = 0;
-          let totalLatency = 0;
+          const records = await reviewsRes.json();
+          document.getElementById('kpi-total-scans').textContent = records.length;
 
-          reviews.forEach(r => {
-            totalFindings += r.total_findings || 0;
-            totalLatency += r.duration_ms || 0;
+          let defects = 0;
+          let blocks = 0;
+          let latencySum = 0;
+
+          records.forEach(r => {
+            defects += r.total_findings || 0;
+            if (r.verdict === 'request_changes') blocks++;
+            latencySum += r.duration_ms || 0;
           });
 
-          document.getElementById('stat-total-findings').textContent = totalFindings;
-          const avgLatency = reviews.length ? (totalLatency / reviews.length).toFixed(0) : "0";
-          document.getElementById('stat-avg-latency').textContent = avgLatency + "ms";
+          document.getElementById('kpi-total-defects').textContent = defects;
+          document.getElementById('kpi-security-blocks').textContent = blocks;
+          const avg = records.length ? (latencySum / records.length).toFixed(0) : 0;
+          document.getElementById('kpi-mean-latency').textContent = avg + "ms";
 
-          renderRecentList(reviews.slice(0, 5));
+          renderOverviewList(records.slice(0, 5));
         }
       } catch (e) {
-        console.error("Failed to load dashboard data", e);
+        console.error("Failed to load telemetry", e);
       }
     }
 
-    function renderRecentList(reviews) {
-      const container = document.getElementById('recent-reviews-list');
-      container.innerHTML = "";
+    function renderOverviewList(records) {
+      const el = document.getElementById('overview-recent-container');
+      el.innerHTML = "";
 
-      if (reviews.length === 0) {
-        container.innerHTML = `
-          <div class="py-8 text-center text-slate-500 text-sm">
-            No reviews logged yet. Go to <a href="#" onclick="switchTab('studio')" class="text-brand-400 underline">Review Studio</a> to test your first diff!
-          </div>
-        `;
+      if (records.length === 0) {
+        el.innerHTML = `<div class="p-6 text-center text-xs text-slate-400">No inspections logged yet. Use the Console tab to run a diff test.</div>`;
         return;
       }
 
-      reviews.forEach(r => {
+      records.forEach(r => {
         const row = document.createElement('div');
-        row.className = "py-3 flex items-center justify-between text-xs";
+        row.className = "px-4 py-3 flex items-center justify-between text-xs font-mono";
 
-        const verdictBadge = r.verdict === 'approve'
-          ? '<span class="text-emerald-400 bg-emerald-500/10 px-2 py-0.5 rounded font-bold">APPROVED</span>'
+        const badge = r.verdict === 'approve'
+          ? '<span class="text-emerald-400 bg-emerald-950/60 border border-emerald-800/40 px-2 py-0.5 rounded text-[10px]">APPROVE</span>'
           : r.verdict === 'request_changes'
-          ? '<span class="text-rose-400 bg-rose-500/10 px-2 py-0.5 rounded font-bold">CHANGES REQ</span>'
-          : '<span class="text-amber-400 bg-amber-500/10 px-2 py-0.5 rounded font-bold">COMMENT</span>';
+          ? '<span class="text-rose-400 bg-rose-950/60 border border-rose-800/40 px-2 py-0.5 rounded text-[10px]">BLOCKED</span>'
+          : '<span class="text-amber-400 bg-amber-950/60 border border-amber-800/40 px-2 py-0.5 rounded text-[10px]">COMMENT</span>';
 
         row.innerHTML = `
-          <div class="space-y-0.5">
-            <p class="font-semibold text-slate-200">${r.repo || 'Direct Diff'}</p>
-            <p class="text-[11px] text-slate-400">${r.created_at ? new Date(r.created_at).toLocaleString() : 'Just now'}</p>
+          <div>
+            <div class="text-slate-200 font-medium">${r.repo || 'Direct Unified Diff'} ${r.pull_number ? '#' + r.pull_number : ''}</div>
+            <div class="text-slate-400 text-[11px] font-sans">${r.created_at ? new Date(r.created_at).toLocaleTimeString() : 'N/A'} &middot; ${r.total_findings || 0} defects</div>
           </div>
-          <div class="flex items-center space-x-3">
-            <span class="text-slate-400">${r.total_findings || 0} finding(s)</span>
-            ${verdictBadge}
-          </div>
+          <div>${badge}</div>
         `;
-        container.appendChild(row);
+        el.appendChild(row);
       });
     }
 
-    // Load Review History Table
-    async function loadReviewHistory() {
-      const tbody = document.getElementById('history-table-body');
-      tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-6 text-center text-slate-500">Loading history...</td></tr>`;
+    // Audit Trail Table
+    async function loadAuditHistory() {
+      const tbody = document.getElementById('audit-table-body');
+      tbody.innerHTML = `<tr><td colspan="6" class="px-4 py-6 text-center text-slate-400">Loading audit trail...</td></tr>`;
 
       try {
         const res = await fetch('/reviews?limit=50');
-        const reviews = await res.json();
+        const rows = await res.json();
         tbody.innerHTML = "";
 
-        if (reviews.length === 0) {
-          tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-8 text-center text-slate-500">No review runs found in the database.</td></tr>`;
+        if (rows.length === 0) {
+          tbody.innerHTML = `<tr><td colspan="6" class="px-4 py-6 text-center text-slate-400">No recorded audit rows in database.</td></tr>`;
           return;
         }
 
-        reviews.forEach(r => {
+        rows.forEach(r => {
           const tr = document.createElement('tr');
-          tr.className = "hover:bg-surface-750/50 transition";
+          tr.className = "hover:bg-slate-850/60 transition";
 
-          const verdictBadge = r.verdict === 'approve'
-            ? '<span class="text-emerald-400 font-bold">APPROVE</span>'
+          const badge = r.verdict === 'approve'
+            ? '<span class="text-emerald-400">APPROVE</span>'
             : r.verdict === 'request_changes'
-            ? '<span class="text-rose-400 font-bold">REQUEST CHANGES</span>'
-            : '<span class="text-amber-400 font-bold">COMMENT</span>';
+            ? '<span class="text-rose-400">REQUEST_CHANGES</span>'
+            : '<span class="text-amber-400">COMMENT</span>';
 
           tr.innerHTML = `
-            <td class="px-6 py-4 font-medium text-white">${r.repo || 'Direct Diff'} ${r.pull_number ? '#' + r.pull_number : ''}</td>
-            <td class="px-6 py-4">${verdictBadge}</td>
-            <td class="px-6 py-4">${r.total_findings || 0}</td>
-            <td class="px-6 py-4 font-mono text-xs">${r.duration_ms ? r.duration_ms.toFixed(1) + 'ms' : '--'}</td>
-            <td class="px-6 py-4 text-xs text-slate-400">${r.created_at ? new Date(r.created_at).toLocaleDateString() : 'N/A'}</td>
-            <td class="px-6 py-4 text-right">
-              <button onclick="viewReviewDetail('${r.id}')" class="text-xs px-2.5 py-1 rounded bg-surface-700 hover:bg-surface-600 text-brand-300 font-medium transition">
-                Inspect
+            <td class="px-4 py-3 text-slate-200">${r.repo || 'direct-diff'} ${r.pull_number ? '#' + r.pull_number : ''}</td>
+            <td class="px-4 py-3">${badge}</td>
+            <td class="px-4 py-3 text-slate-300">${r.total_findings || 0}</td>
+            <td class="px-4 py-3 text-slate-400">${r.duration_ms ? r.duration_ms.toFixed(1) + 'ms' : '--'}</td>
+            <td class="px-4 py-3 text-slate-400">${r.created_at ? new Date(r.created_at).toISOString().split('T')[0] : 'N/A'}</td>
+            <td class="px-4 py-3 text-right">
+              <button onclick="openAuditModal('${r.id}')" class="px-2 py-0.5 rounded bg-slate-800 hover:bg-slate-750 text-slate-300 font-mono text-[11px] transition">
+                VIEW
               </button>
             </td>
           `;
           tbody.appendChild(tr);
         });
-      } catch (err) {
-        tbody.innerHTML = `<tr><td colspan="6" class="px-6 py-6 text-center text-rose-400">Failed to load history: ${err.message}</td></tr>`;
+      } catch (e) {
+        tbody.innerHTML = `<tr><td colspan="6" class="px-4 py-6 text-center text-rose-400">Audit load failed: ${e.message}</td></tr>`;
       }
     }
 
-    // Modal Details
-    async function viewReviewDetail(id) {
-      const modal = document.getElementById('modal-backdrop');
-      const body = document.getElementById('modal-body');
+    async function openAuditModal(id) {
+      const modal = document.getElementById('audit-modal-backdrop');
+      const body = document.getElementById('audit-modal-body');
       modal.classList.remove('hidden');
-      body.innerHTML = "<p class='text-center text-slate-400 py-6'>Loading details...</p>";
+      body.innerHTML = "<p class='text-center py-6 text-slate-400'>Fetching record...</p>";
 
       try {
         const res = await fetch(`/reviews/${id}`);
         const data = await res.json();
-        
-        let html = `
-          <div class="space-y-3">
-            <div class="flex items-center justify-between pb-3 border-b border-surface-700 text-xs">
-              <span class="font-bold text-slate-200">Verdict: <span class="uppercase text-brand-400">${data.review.verdict}</span></span>
-              <span class="text-slate-400">Duration: ${data.review.duration_ms}ms</span>
+
+        let out = `
+          <div class="space-y-3 font-mono">
+            <div class="flex justify-between border-b border-slate-800 pb-2">
+              <span>TARGET: <b class="text-white">${data.review.repo || 'Direct Diff'}</b></span>
+              <span>VERDICT: <b class="text-white uppercase">${data.review.verdict}</b></span>
             </div>
-            <p class="text-xs text-slate-300 leading-relaxed">${data.review.summary}</p>
-            <h4 class="font-bold text-xs uppercase tracking-wider text-slate-400 pt-2">Findings (${data.findings.length})</h4>
+            <p class="font-sans text-slate-300">${data.review.summary}</p>
+            <div class="pt-2 font-bold text-slate-400">FINDINGS (${data.findings.length}):</div>
         `;
 
         data.findings.forEach(f => {
-          html += `
-            <div class="p-3 rounded-lg bg-surface-900 border border-surface-700 text-xs space-y-1">
-              <div class="flex items-center justify-between font-mono text-slate-400 text-[11px]">
-                <span class="text-brand-300 font-bold">${f.file}${f.line_hint ? ':' + f.line_hint : ''}</span>
-                <span class="uppercase text-amber-400">${f.severity} / ${f.category}</span>
+          out += `
+            <div class="p-2.5 rounded bg-slate-950 border border-slate-800 space-y-1">
+              <div class="flex justify-between text-[11px]">
+                <span class="text-slate-200">${f.file}${f.line_hint ? ':' + f.line_hint : ''}</span>
+                <span class="text-amber-400 uppercase">[${f.severity}]</span>
               </div>
-              <p class="text-slate-200">${f.issue}</p>
-              <pre class="mt-2 text-emerald-300 overflow-x-auto text-[11px] p-2 bg-surface-950 rounded">${f.suggested_fix}</pre>
+              <p class="font-sans text-slate-300 text-[11px]">${f.issue}</p>
+              <pre class="p-2 rounded bg-slate-900 text-emerald-400 text-[10px] overflow-x-auto">${f.suggested_fix}</pre>
             </div>
           `;
         });
-
-        html += `</div>`;
-        body.innerHTML = html;
-
+        out += `</div>`;
+        body.innerHTML = out;
       } catch (err) {
-        body.innerHTML = `<p class='text-rose-400 text-center py-6'>Failed to fetch details: ${err.message}</p>`;
+        body.innerHTML = `<p class='text-rose-400 text-center py-6'>Error: ${err.message}</p>`;
       }
     }
 
-    function closeModal() {
-      document.getElementById('modal-backdrop').classList.add('hidden');
+    function closeAuditModal() {
+      document.getElementById('audit-modal-backdrop').classList.add('hidden');
     }
 
-    // Clipboard helpers
-    function copyToClipboard(elementId, btnTextId) {
-      const el = document.getElementById(elementId);
+    // Helpers
+    function copyToClipboard(inputElId, btnId) {
+      const el = document.getElementById(inputElId);
       navigator.clipboard.writeText(el.value);
-      const btn = document.getElementById(btnTextId);
-      btn.textContent = "Copied!";
-      setTimeout(() => btn.textContent = "Copy", 1500);
+      const b = document.getElementById(btnId);
+      b.textContent = "COPIED";
+      setTimeout(() => b.textContent = "COPY", 1500);
     }
 
-    function toggleSecretVisibility() {
-      const input = document.getElementById('webhook-secret-input');
-      const isPass = input.type === 'password';
-      input.type = isPass ? 'text' : 'password';
+    function toggleSecret() {
+      const input = document.getElementById('webhook-secret-view');
+      input.type = input.type === 'password' ? 'text' : 'password';
     }
 
     // Initial Load
-    loadDashboardStats();
+    loadTelemetry();
   </script>
 </body>
 </html>
